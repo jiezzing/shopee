@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="20dp"
+    tools:context=".CreateAccountActivity">
+
+    <EditText
+        android:id="@+id/firstname"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="text"
+        android:hint="@string/firstname"
+        android:padding="15dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/lastname"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="text"
+        android:hint="@string/lastname"
+        android:padding="15dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="textEmailAddress"
+        android:hint="@string/email"
+        android:padding="15dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="textPassword"
+        android:hint="@string/password"
+        android:padding="15dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/confirm_password"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="textPassword"
+        android:hint="@string/confirm_pass"
+        android:padding="15dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <RadioGroup
+        android:id="@+id/group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:checkedButton="@+id/customer"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/customer"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/customer"/>
+        <RadioButton
+            android:id="@+id/seller"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/seller"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/create"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:layout_margin="5dp"
+        android:background="@color/defaultColor"
+        android:text="@string/create_account_text"/>
+
+</LinearLayout>

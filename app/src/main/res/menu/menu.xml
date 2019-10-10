@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Dashboard">
+        <menu>
+            <item
+                android:id="@+id/order"
+                android:icon="@drawable/ic_people"
+                android:title="Customer" />
+            <item
+                android:id="@+id/products"
+                android:icon="@drawable/ic_store"
+                android:title="Product" />
+        </menu>
+    </item>
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/profile"
+                android:icon="@drawable/ic_account_circle"
+                android:title="Personal Information" />
+            <item
+                android:id="@+id/logout"
+                android:icon="@drawable/ic_exit_to_app"
+                android:title="Logout" />
+        </menu>
+    </item>
+</menu>

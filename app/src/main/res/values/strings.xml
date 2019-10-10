@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Shopee</string>
+    <string name="email">Email Address</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="firstname">Firstname</string>
+    <string name="lastname">Lastname</string>
+    <string name="confirm_pass">Confirm Password</string>
+    <string name="customer">Customer</string>
+    <string name="seller">Seller</string>
+    <string name="create_account_text">CREATE ACCOUNT</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="web_client_id">533621629505-ugr7hp304nk5o3s2jb8ijdrvs4pgak9e.apps.googleusercontent.com</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="type">User Type</string>
+    <string name="update_account">Update Account</string>
+    <string name="info">Can\'t update email address, password and user type for now.</string>
+    <string name="product_name">Product Name</string>
+    <string name="description">Description</string>
+    <string name="price">Price</string>
+    <string name="qty">Quantity</string>
+    <string name="add_product">ADD NEW PRODUCT</string>
+</resources>
