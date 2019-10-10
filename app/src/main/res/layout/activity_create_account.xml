@@ -15,7 +15,7 @@
         android:layout_margin="5dp"
         android:inputType="text"
         android:hint="@string/firstname"
-        android:padding="15dp"
+        android:padding="10dp"
         android:background="@drawable/et_border"
         android:layout_height="wrap_content"/>
 
@@ -25,7 +25,27 @@
         android:layout_margin="5dp"
         android:inputType="text"
         android:hint="@string/lastname"
-        android:padding="15dp"
+        android:padding="10dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/phone"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="phone"
+        android:hint="@string/phone"
+        android:padding="10dp"
+        android:background="@drawable/et_border"
+        android:layout_height="wrap_content"/>
+
+    <EditText
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_margin="5dp"
+        android:inputType="text"
+        android:hint="@string/address"
+        android:padding="10dp"
         android:background="@drawable/et_border"
         android:layout_height="wrap_content"/>
 
@@ -35,7 +55,7 @@
         android:layout_margin="5dp"
         android:inputType="textEmailAddress"
         android:hint="@string/email"
-        android:padding="15dp"
+        android:padding="10dp"
         android:background="@drawable/et_border"
         android:layout_height="wrap_content"/>
 
@@ -45,7 +65,7 @@
         android:layout_margin="5dp"
         android:inputType="textPassword"
         android:hint="@string/password"
-        android:padding="15dp"
+        android:padding="10dp"
         android:background="@drawable/et_border"
         android:layout_height="wrap_content"/>
 
@@ -55,7 +75,7 @@
         android:layout_margin="5dp"
         android:inputType="textPassword"
         android:hint="@string/confirm_pass"
-        android:padding="15dp"
+        android:padding="10dp"
         android:background="@drawable/et_border"
         android:layout_height="wrap_content"/>
 
@@ -63,7 +83,7 @@
         android:id="@+id/group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="15dp"
+        android:padding="10dp"
         android:checkedButton="@+id/customer"
         android:orientation="horizontal">
         <RadioButton
@@ -84,7 +104,7 @@
         android:id="@+id/create"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="15dp"
+        android:padding="10dp"
         android:layout_margin="5dp"
         android:background="@color/defaultColor"
         android:text="@string/create_account_text"/>

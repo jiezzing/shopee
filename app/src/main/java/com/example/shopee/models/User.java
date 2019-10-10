@@ -3,22 +3,26 @@ package com.example.shopee.models;
 public class User {
     private String id;
     private String firstname;
-    private String latname;
+    private String lastname;
     private String email;
     private String password;
     private String type;
+    private String address;
+    private String phone;
     private String status;
 
     public User() {
     }
 
-    public User(String id, String firstname, String latname, String email, String password, String type, String status) {
+    public User(String id, String firstname, String lastname, String email, String password, String type, String address, String phone, String status) {
         this.id = id;
         this.firstname = firstname;
-        this.latname = latname;
+        this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.type = type;
+        this.address = address;
+        this.phone = phone;
         this.status = status;
     }
 
@@ -38,12 +42,12 @@ public class User {
         this.firstname = firstname;
     }
 
-    public String getLatname() {
-        return latname;
+    public String getLastname() {
+        return lastname;
     }
 
-    public void setLatname(String latname) {
-        this.latname = latname;
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 
     public String getEmail() {
@@ -68,6 +72,22 @@ public class User {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getStatus() {

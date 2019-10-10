@@ -23,7 +23,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class CreateAccountActivity extends AppCompatActivity {
-    EditText firstname, lastname, email, password, confirm_password;
+    EditText firstname, lastname, phone, address, email, password, confirm_password;
     RadioGroup radio_group;
     RadioButton user_type;
     Button create;
@@ -48,6 +48,8 @@ public class CreateAccountActivity extends AppCompatActivity {
         // Initializations
         firstname = findViewById(R.id.firstname);
         lastname = findViewById(R.id.lastname);
+        phone = findViewById(R.id.phone);
+        address = findViewById(R.id.address);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
         confirm_password = findViewById(R.id.confirm_password);
@@ -67,6 +69,8 @@ public class CreateAccountActivity extends AppCompatActivity {
 
                 final String mFirstname = firstname.getText().toString();
                 final String mLastName = lastname.getText().toString();
+                final String mPhone = phone.getText().toString();
+                final String mAddress = address.getText().toString();
                 final String mEmail = email.getText().toString();
                 final String mPassword = password.getText().toString();
 
@@ -100,42 +104,32 @@ public class CreateAccountActivity extends AppCompatActivity {
                 else{
                     progressDialog.show();
                     auth.createUserWithEmailAndPassword(mEmail, mPassword)
-                            .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    String userId = auth.getCurrentUser().getUid();
-                                    if(task.isSuccessful()){
-                                        User user = new User(
-                                                userId,
-                                                mFirstname,
-                                                mLastName,
-                                                mEmail,
-                                                mPassword,
-                                                type,
-                                                "active"
-                                        );
-
-                                        userRef.child(userId).setValue(user)
-                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        if(task.isSuccessful()){
-                                                            progressDialog.dismiss();
-                                                            Toast.makeText(CreateAccountActivity.this, "Account created successfully.", Toast.LENGTH_SHORT).show();
-                                                            startActivity(new Intent(CreateAccountActivity.this, LoginActivity.class));
-                                                        }
-                                                        else{
-                                                            Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again.", Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }
-                                                });
-                                    }
-                                    else{
-                                        progressDialog.dismiss();
-                                        Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again. " + task.getException(), Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                            String userId = auth.getCurrentUser().getUid();
+                            if(task.isSuccessful()){
+                                User user = new User(userId, mFirstname, mLastName, mEmail, mPassword, type, mAddress, mPhone, "active");
+                                userRef.child(userId).setValue(user)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+                                            progressDialog.dismiss();
+                                            Toast.makeText(CreateAccountActivity.this, "Account created successfully.", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again.", Toast.LENGTH_SHORT).show();
+                                        }
+                                        }
+                                    });
+                            }
+                            else{
+                                progressDialog.dismiss();
+                                Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again. " + task.getException(), Toast.LENGTH_SHORT).show();
+                            }
+                            }
+                        });
                 }
             }
         });

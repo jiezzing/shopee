@@ -1,5 +1,6 @@
 package com.example.shopee;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.shopee.models.User;
 import com.example.shopee.seller.HomeActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -28,18 +30,24 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
     Button login;
     TextView create_account;
     SignInButton google_sign_in;
     EditText email, password;
+    ProgressDialog progressDialog;
 
-    GoogleSignInClient mGoogleSignInClient;
 
     FirebaseAuth auth;
     FirebaseAuth.AuthStateListener authStateListener;
     FirebaseUser firebaseUser;
+    DatabaseReference user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,20 +60,42 @@ public class LoginActivity extends AppCompatActivity {
         google_sign_in = findViewById(R.id.google_sign_in);
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Logging in...");
+        progressDialog.setCancelable(false);
 
         // Firebase
         auth = FirebaseAuth.getInstance();
+        user = FirebaseDatabase.getInstance().getReference("User");
 
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 firebaseUser = auth.getCurrentUser();
                 if(firebaseUser != null){
-                    Toast.makeText(LoginActivity.this, "You are logged in", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    user.child(userId).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            String type = dataSnapshot.child("type").getValue().toString();
+                            if(type.equals("Customer")){
+                                progressDialog.dismiss();
+                                startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
+                            }
+                            else{
+                                progressDialog.dismiss();
+                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
                 }
                 else{
-                    Toast.makeText(LoginActivity.this, "An error occurred. Please try again.", Toast.LENGTH_SHORT).show();
+                    progressDialog.dismiss();
                 }
             }
         };
@@ -92,14 +122,17 @@ public class LoginActivity extends AppCompatActivity {
                     password.requestFocus();
                 }
                 else{
+                    progressDialog.show();
                     auth.signInWithEmailAndPassword(mEmail, mPassword).addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if(task.isSuccessful()){
+                                progressDialog.dismiss();
                                 startActivity(new Intent(LoginActivity.this, HomeActivity.class));
                                 finish();
                             }
                             else{
+                                progressDialog.dismiss();
                                 Toast.makeText(LoginActivity.this, "An error occurred. Please check your email address and password.", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -112,6 +145,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        progressDialog.show();
         auth.addAuthStateListener(authStateListener);
     }
 }

@@ -1,102 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_margin="20dp"
     android:layout_height="match_parent">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/firstname"/>
+        android:layout_margin="15dp"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/firstname"/>
 
-    <EditText
-        android:id="@+id/firstname"
-        android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        android:inputType="text"
-        android:padding="10dp"
-        android:background="@drawable/et_border"
-        android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/firstname"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/lastname"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/lastname"/>
 
-    <EditText
-        android:id="@+id/lastname"
-        android:layout_width="match_parent"
-        android:layout_margin="3dp"
-        android:inputType="text"
-        android:padding="10dp"
-        android:background="@drawable/et_border"
-        android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/lastname"
+            android:layout_width="match_parent"
+            android:layout_margin="3dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/email"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/phone"/>
 
-    <EditText
-        android:id="@+id/email"
-        android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        android:inputType="textEmailAddress"
-        android:padding="10dp"
-        android:enabled="false"
-        android:background="@drawable/et_border"
-        android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/phone"
+            android:layout_width="match_parent"
+            android:layout_margin="3dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/password"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/address"/>
 
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        android:inputType="textPassword"
-        android:hint="@string/password"
-        android:padding="10dp"
-        android:enabled="false"
-        android:background="@drawable/et_border"
-        android:layout_height="wrap_content"/>
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/type"/>
+        <EditText
+            android:id="@+id/address"
+            android:layout_width="match_parent"
+            android:layout_margin="3dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
 
-    <EditText
-        android:id="@+id/user_type"
-        android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        android:inputType="textPassword"
-        android:hint="@string/password"
-        android:padding="10dp"
-        android:enabled="false"
-        android:background="@drawable/et_border"
-        android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/email"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="3dp"
-        android:text="@string/info"/>
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:enabled="false"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
 
-    <Button
-        android:id="@+id/login"
-        android:layout_width="match_parent"
-        android:layout_margin="5dp"
-        android:layout_height="wrap_content"
-        android:background="@color/defaultColor"
-        android:text="@string/update_account"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/password"/>
 
-</LinearLayout>
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:enabled="false"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/type"/>
+
+        <EditText
+            android:id="@+id/user_type"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:inputType="text"
+            android:padding="10dp"
+            android:enabled="false"
+            android:background="@drawable/et_border"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:text="@string/info"/>
+
+        <Button
+            android:id="@+id/update"
+            android:layout_width="match_parent"
+            android:layout_margin="5dp"
+            android:layout_height="wrap_content"
+            android:background="@color/defaultColor"
+            android:text="@string/update_account"/>
+    </LinearLayout>
+</ScrollView>

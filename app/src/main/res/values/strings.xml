@@ -23,4 +23,6 @@
     <string name="price">Price</string>
     <string name="qty">Quantity</string>
     <string name="add_product">ADD NEW PRODUCT</string>
+    <string name="phone">Phone Number</string>
+    <string name="address">Address</string>
 </resources>
