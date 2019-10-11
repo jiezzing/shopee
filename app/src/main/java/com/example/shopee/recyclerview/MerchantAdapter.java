@@ -1,26 +1,39 @@
 package com.example.shopee.recyclerview;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.shopee.R;
+import com.example.shopee.customer.ProductsActivity;
+import com.example.shopee.customer.SellerFragment;
+import com.example.shopee.events.ItemClickListener;
+import com.example.shopee.models.Product;
 import com.example.shopee.models.User;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> {
+public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> implements Filterable {
     private Context context;
     private List<User> list;
+    private List<User> listTemp;
 
     public MerchantAdapter(Context context, List<User> list) {
         this.context = context;
         this.list = list;
+        listTemp = new ArrayList<>(list);
     }
 
     @NonNull
@@ -37,26 +50,85 @@ public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> {
         final String phone = "Phone #: " + user.getPhone();
         final String address =user.getAddress();
         final String type = user.getType();
+        final String id = user.getId();
 
         merchantViewHolder.name.setText(name);
         merchantViewHolder.phone.setText(phone);
         merchantViewHolder.address.setText(address);
         merchantViewHolder.type.setText(type);
+
+        merchantViewHolder.setItemClickListener(new ItemClickListener() {
+            @Override
+            public void onClick(View view, int position, boolean isLongClick) {
+                Intent intent = new Intent(context, ProductsActivity.class);
+                intent.putExtra("user_id", id);
+                context.startActivity(intent);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
         return list.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return filter;
+    }
+
+    private Filter filter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<User> filteredList = new ArrayList<>();
+
+            if(constraint == null || constraint.length() == 0){
+                filteredList.addAll(listTemp);
+            }
+            else{
+                String filterPattern = constraint.toString().toLowerCase().trim();
+                for(User user : listTemp){
+                    if(user.getFirstname().toLowerCase().contains(filterPattern)
+                        || user.getLastname().toLowerCase().contains(filterPattern)){
+                            filteredList.add(user);
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values =  filteredList;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            list.clear();
+            list.addAll((List)results.values);
+            notifyDataSetChanged();
+        }
+    };
 }
 
-class MerchantViewHolder extends RecyclerView.ViewHolder{
+class MerchantViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
     public TextView name, phone, address, type;
+    public ItemClickListener itemClickListener;
+
+    public void setItemClickListener(ItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
+    }
+
     public MerchantViewHolder(@NonNull View itemView) {
         super(itemView);
         name = itemView.findViewById(R.id.name);
         phone = itemView.findViewById(R.id.phone);
         address = itemView.findViewById(R.id.address);
         type = itemView.findViewById(R.id.type);
+
+        itemView.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        itemClickListener.onClick(v, getAdapterPosition(), false);
     }
 }

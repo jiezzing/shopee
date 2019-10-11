@@ -25,4 +25,6 @@
     <string name="add_product">ADD NEW PRODUCT</string>
     <string name="phone">Phone Number</string>
     <string name="address">Address</string>
+    <string name="add_to_cart">ADD TO CART</string>
+    <string name="order">ORDER NOW</string>
 </resources>

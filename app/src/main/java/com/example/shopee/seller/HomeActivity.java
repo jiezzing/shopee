@@ -97,7 +97,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.products:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProductsFragment()).commit();
-                Objects.requireNonNull(getSupportActionBar()).setTitle("Products");
+                Objects.requireNonNull(getSupportActionBar()).setTitle("Product");
                 break;
             case R.id.profile:
                 final String user_id = auth.getCurrentUser().getUid();

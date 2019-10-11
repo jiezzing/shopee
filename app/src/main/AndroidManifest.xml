@@ -11,8 +11,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".customer.HomeActivity"
-            android:theme="@style/Theme.AppCompat.Light"/>
+        <activity android:name=".customer.ProductsActivity"
+            android:theme="@style/Theme.AppCompat.Light"
+            android:label="Products"/>
+        <activity
+            android:name=".customer.HomeActivity"
+            android:theme="@style/Theme.AppCompat.Light" />
         <activity
             android:name=".seller.HomeActivity"
             android:theme="@style/Theme.AppCompat.Light" />

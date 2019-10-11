@@ -5,33 +5,47 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
+import com.example.shopee.models.Product;
+import com.example.shopee.recyclerview.ProductAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ProductsFragment extends Fragment {
+public class ProductsFragment extends Fragment{
     FloatingActionButton add_product;
     BottomSheetDialog bottomSheetDialog;
     ImageView add_item_photo;
@@ -40,9 +54,15 @@ public class ProductsFragment extends Fragment {
     Uri uri;
     Button add_product_btn;
     ProgressDialog progressDialog;
+    EditText name, desc, price, qty;
+
+    private RecyclerView recyclerView;
+    private ProductAdapter adapter;
+    private List<Product> list;
 
     FirebaseDatabase database;
     FirebaseAuth auth;
+    DatabaseReference productReference;
 
     public ProductsFragment() {
         // Required empty public constructor
@@ -57,6 +77,12 @@ public class ProductsFragment extends Fragment {
 
         database = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();
+        productReference = database.getReference("Products");
+
+        recyclerView = view.findViewById(R.id.recycler_view);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        list = new ArrayList<>();
 
         progressDialog = new ProgressDialog(getActivity());
         bottomSheetDialog = new BottomSheetDialog(getActivity());
@@ -65,6 +91,30 @@ public class ProductsFragment extends Fragment {
         add_product = view.findViewById(R.id.add_product);
         add_item_photo = bottomSheetView.findViewById(R.id.add_item_photo);
         add_product_btn = bottomSheetView.findViewById(R.id.add_product_btn);
+        name = bottomSheetView.findViewById(R.id.product_name);
+        desc = bottomSheetView.findViewById(R.id.product_desc);
+        price = bottomSheetView.findViewById(R.id.product_price);
+        qty = bottomSheetView.findViewById(R.id.product_qty);
+
+        productReference.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                list.clear();
+                for(DataSnapshot post : dataSnapshot.getChildren()){
+                    Product product = post.getValue(Product.class);
+                    list.add(product);
+                }
+                adapter = new ProductAdapter(getActivity(), list);
+                recyclerView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
 
         add_product.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,7 +138,7 @@ public class ProductsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String userId = auth.getCurrentUser().getUid();
-                String key = database.getReference("Products").push().getKey();
+                String key = database.getReference("Product").push().getKey();
                 StorageReference storage = FirebaseStorage.getInstance().getReference("ProductPhotos").child(userId).child(key);
                 storage.putFile(uri).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -106,8 +156,32 @@ public class ProductsFragment extends Fragment {
                         result.addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
-                                Toast.makeText(getActivity(), "Successfully uploaded.", Toast.LENGTH_SHORT).show();
-                                progressDialog.dismiss();
+                                String userId = auth.getCurrentUser().getUid();
+                                String id = database.getReference("Products").push().getKey();
+                                String prod_name = name.getText().toString();
+                                String prod_desc = desc.getText().toString();
+                                String prod_price = price.getText().toString();
+                                String prod_qty = qty.getText().toString();
+                                String image_uri = uri.toString();
+                                Product product;
+                                if(Integer.parseInt(prod_qty) > 0){
+                                    product = new Product(id, prod_name, prod_desc, prod_price, prod_qty, image_uri, auth.getCurrentUser().getUid(), "available");
+                                }
+                                else{
+                                    product = new Product(id, prod_name, prod_desc, prod_price, prod_qty, image_uri, auth.getCurrentUser().getUid(), "not available");
+                                }
+                                productReference.child(userId).child(id).setValue(product).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+                                            Toast.makeText(getActivity(), "Successfully uploaded.", Toast.LENGTH_SHORT).show();
+                                            progressDialog.dismiss();
+                                        }
+                                        else{
+                                            Toast.makeText(getActivity(), "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
                             }
                         });
                     }
