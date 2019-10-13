@@ -37,7 +37,6 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
     private List<Product> list;
     private List<Product> listTemp;
     BottomSheetDialog bottomSheetDialog;
-    EditText mQty;
     Button add_to_cart;
 
     FirebaseDatabase database;
@@ -59,7 +58,6 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         cartRef = database.getReference("Cart");
         bottomSheetDialog = new BottomSheetDialog(context);
         View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.add_cart_bottomsheet_layout, null);
-        mQty = bottomSheetView.findViewById(R.id.qty);
         add_to_cart = bottomSheetView.findViewById(R.id.add_to_cart);
         bottomSheetDialog.setContentView(bottomSheetView);
         return new ShowAllSellerProductViewHolder(view);
@@ -72,7 +70,6 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         final String name =  product.getName();
         final String desc =  product.getDescription();
         String price =  product.getPrice();
-        String qty =  product.getQty();
         final String uri =  product.getImage_uri();
         final String id =  product.getId();
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
@@ -83,7 +80,6 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         showAllSellerProductViewHolder.name.setText(name);
         showAllSellerProductViewHolder.desc.setText(desc);
         showAllSellerProductViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
-        showAllSellerProductViewHolder.qty.setText(qty);
         Picasso.get().load(uri).into(showAllSellerProductViewHolder.image);
 
         showAllSellerProductViewHolder.setItemClickListener(new ItemClickListener() {
@@ -102,7 +98,7 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         add_to_cart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cart cart = new Cart(itemId, itemName, itemDesc, itemPrice, mQty.getText().toString(), itemUri, sellerId);
+                Cart cart = new Cart(itemId, itemName, itemDesc, itemPrice, itemUri, sellerId);
                 cartRef.child(auth.getCurrentUser().getUid()).child(itemId).setValue(cart).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {

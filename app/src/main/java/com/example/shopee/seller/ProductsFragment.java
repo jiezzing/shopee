@@ -6,17 +6,26 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.shopee.R;
@@ -45,16 +54,18 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ProductsFragment extends Fragment{
+public class ProductsFragment extends Fragment implements SearchView.OnQueryTextListener {
     FloatingActionButton add_product;
     BottomSheetDialog bottomSheetDialog;
     ImageView add_item_photo;
     int PICK_IMAGE_REQUEST = 1;
     Boolean selected = false;
-    Uri uri;
+    Uri uri = null;
     Button add_product_btn;
     ProgressDialog progressDialog;
     EditText name, desc, price, qty;
+
+    LinearLayout info;
 
     private RecyclerView recyclerView;
     private ProductAdapter adapter;
@@ -63,6 +74,12 @@ public class ProductsFragment extends Fragment{
     FirebaseDatabase database;
     FirebaseAuth auth;
     DatabaseReference productReference;
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     public ProductsFragment() {
         // Required empty public constructor
@@ -89,18 +106,20 @@ public class ProductsFragment extends Fragment{
         View bottomSheetView = getLayoutInflater().inflate(R.layout.product_bottomsheet_layout, null);
         bottomSheetDialog.setContentView(bottomSheetView);
         add_product = view.findViewById(R.id.add_product);
+        info = view.findViewById(R.id.info);
         add_item_photo = bottomSheetView.findViewById(R.id.add_item_photo);
         add_product_btn = bottomSheetView.findViewById(R.id.add_product_btn);
         name = bottomSheetView.findViewById(R.id.product_name);
         desc = bottomSheetView.findViewById(R.id.product_desc);
         price = bottomSheetView.findViewById(R.id.product_price);
-        qty = bottomSheetView.findViewById(R.id.product_qty);
 
         productReference.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 list.clear();
+                info.setVisibility(View.VISIBLE);
                 for(DataSnapshot post : dataSnapshot.getChildren()){
+                    info.setVisibility(View.GONE);
                     Product product = post.getValue(Product.class);
                     list.add(product);
                 }
@@ -137,55 +156,71 @@ public class ProductsFragment extends Fragment{
         add_product_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String userId = auth.getCurrentUser().getUid();
-                String key = database.getReference("Product").push().getKey();
-                StorageReference storage = FirebaseStorage.getInstance().getReference("ProductPhotos").child(userId).child(key);
-                storage.putFile(uri).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                        double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                        int currentProgress = (int) progress;
-                        progressDialog.setMessage("Uploaded in " + currentProgress + "%");
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
-                    }
-                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        Task<Uri> result = taskSnapshot.getMetadata().getReference().getDownloadUrl();
-                        result.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                String userId = auth.getCurrentUser().getUid();
-                                String id = database.getReference("Products").push().getKey();
-                                String prod_name = name.getText().toString();
-                                String prod_desc = desc.getText().toString();
-                                String prod_price = price.getText().toString();
-                                String prod_qty = qty.getText().toString();
-                                String image_uri = uri.toString();
-                                Product product;
-                                if(Integer.parseInt(prod_qty) > 0){
-                                    product = new Product(id, prod_name, prod_desc, prod_price, prod_qty, image_uri, auth.getCurrentUser().getUid(), "available");
-                                }
-                                else{
-                                    product = new Product(id, prod_name, prod_desc, prod_price, prod_qty, image_uri, auth.getCurrentUser().getUid(), "not available");
-                                }
-                                productReference.child(userId).child(id).setValue(product).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()){
-                                            Toast.makeText(getActivity(), "Successfully uploaded.", Toast.LENGTH_SHORT).show();
-                                            progressDialog.dismiss();
+                if(TextUtils.isEmpty(name.getText())){
+                    name.setError("Required");
+                    name.requestFocus();
+                }
+                else if(TextUtils.isEmpty(desc.getText())){
+                    desc.setError("Required");
+                    desc.requestFocus();
+                }
+                else if(TextUtils.isEmpty(price.getText())){
+                    price.setError("Required");
+                    price.requestFocus();
+                }
+                else if(uri == null){
+                    Toast.makeText(getActivity(), "Plase select an image.", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    String userId = auth.getCurrentUser().getUid();
+                    String key = database.getReference("Product").push().getKey();
+                    StorageReference storage = FirebaseStorage.getInstance().getReference("ProductPhotos").child(userId).child(key);
+                    storage.putFile(uri).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                            double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                            int currentProgress = (int) progress;
+                            progressDialog.setMessage("Uploaded in " + currentProgress + "%");
+                            progressDialog.setCancelable(false);
+                            progressDialog.show();
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Task<Uri> result = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+                            result.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(final Uri uri) {
+                                    String userId = auth.getCurrentUser().getUid();
+                                    String id = database.getReference("Products").push().getKey();
+                                    String prod_name = name.getText().toString();
+                                    String prod_desc = desc.getText().toString();
+                                    String prod_price = price.getText().toString();
+                                    String image_uri = uri.toString();
+                                    Product product;
+                                    product = new Product(id, prod_name, prod_desc, prod_price, image_uri, auth.getCurrentUser().getUid(), "available");
+                                    productReference.child(userId).child(id).setValue(product).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if(task.isSuccessful()){
+                                                Toast.makeText(getActivity(), "Successfully uploaded.", Toast.LENGTH_SHORT).show();
+                                                progressDialog.dismiss();
+                                                name.getText().clear();
+                                                desc.getText().clear();
+                                                price.getText().clear();
+                                                add_item_photo.setImageDrawable(null);
+                                                bottomSheetDialog.dismiss();
+                                            }
+                                            else{
+                                                Toast.makeText(getActivity(), "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                            }
                                         }
-                                        else{
-                                            Toast.makeText(getActivity(), "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
             }
         });
 
@@ -206,5 +241,41 @@ public class ProductsFragment extends Fragment{
         else{
             Toast.makeText(getActivity(), "Please select an image.",Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.search_menu, menu);
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) new SearchView(((com.example.shopee.seller.HomeActivity) getActivity()).getSupportActionBar().getThemedContext());
+        MenuItemCompat.setShowAsAction(searchItem, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+        MenuItemCompat.setActionView(searchItem, searchView);
+        searchView.setOnQueryTextListener(this);
+        searchView.setIconified(false);
+        searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                return true;
+            }
+        });
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onQueryTextChange(String s) {
+        if(adapter != null)
+            adapter.getFilter().filter(s);
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String s) {
+        return false;
     }
 }

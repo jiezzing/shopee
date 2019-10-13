@@ -12,8 +12,36 @@
         android:layout_width="match_parent"
         android:layout_height="500dp"
         android:scrollbars="vertical"/>
+
+    <LinearLayout
+        android:id="@+id/info"
+        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:layout_marginTop="150dp"
+        android:visibility="gone"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:padding="10dp"
+            android:background="@drawable/ic_info_outline"
+            android:backgroundTint="@color/colorPrimary"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textSize="19sp"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:text="YOU CART IS EMPTY" />
+    </LinearLayout>
     <Button
-        android:id="@+id/login"
+        android:id="@+id/order_btn"
         android:layout_width="250dp"
         android:layout_margin="20dp"
         android:layout_below="@+id/recycler_view"

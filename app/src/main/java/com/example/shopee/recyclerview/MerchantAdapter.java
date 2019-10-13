@@ -4,26 +4,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.shopee.R;
 import com.example.shopee.customer.ProductsActivity;
-import com.example.shopee.customer.SellerFragment;
 import com.example.shopee.events.ItemClickListener;
-import com.example.shopee.models.Product;
 import com.example.shopee.models.User;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> implements Filterable {
     private Context context;
@@ -50,12 +46,14 @@ public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> im
         final String phone = "Phone #: " + user.getPhone();
         final String address =user.getAddress();
         final String type = user.getType();
+        final String uri = user.getImage_uri();
         final String id = user.getId();
 
         merchantViewHolder.name.setText(name);
         merchantViewHolder.phone.setText(phone);
         merchantViewHolder.address.setText(address);
         merchantViewHolder.type.setText(type);
+        Picasso.get().load(uri).into(merchantViewHolder.image);
 
         merchantViewHolder.setItemClickListener(new ItemClickListener() {
             @Override
@@ -112,6 +110,7 @@ public class MerchantAdapter extends RecyclerView.Adapter<MerchantViewHolder> im
 class MerchantViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
     public TextView name, phone, address, type;
     public ItemClickListener itemClickListener;
+    public ImageView image;
 
     public void setItemClickListener(ItemClickListener itemClickListener) {
         this.itemClickListener = itemClickListener;
@@ -123,6 +122,7 @@ class MerchantViewHolder extends RecyclerView.ViewHolder implements View.OnClick
         phone = itemView.findViewById(R.id.phone);
         address = itemView.findViewById(R.id.address);
         type = itemView.findViewById(R.id.type);
+        image = itemView.findViewById(R.id.food_image);
 
         itemView.setOnClickListener(this);
     }

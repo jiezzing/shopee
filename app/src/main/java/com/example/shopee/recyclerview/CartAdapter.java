@@ -36,7 +36,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     @NonNull
     @Override
     public CartViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(context).inflate(R.layout.product, viewGroup, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.carted_product, viewGroup, false);
         return new CartViewHolder(view);
     }
 
@@ -46,7 +46,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         final String name =  cart.getName();
         final String desc =  cart.getDescription();
         final String price =  cart.getPrice();
-        final String qty =  cart.getQty();
         final String uri =  cart.getImage_uri();
         final String id =  cart.getId();
         final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
@@ -57,7 +56,6 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         cartViewHolder.name.setText(name);
         cartViewHolder.desc.setText(desc);
         cartViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
-        cartViewHolder.qty.setText(qty);
         Picasso.get().load(uri).into(cartViewHolder.image);
 
         cartViewHolder.delete.setOnClickListener(new View.OnClickListener() {

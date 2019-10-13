@@ -18,12 +18,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.example.shopee.R;
 import com.example.shopee.models.Cart;
+import com.example.shopee.models.OrderDetail;
+import com.example.shopee.models.OrderHeader;
 import com.example.shopee.models.User;
 import com.example.shopee.recyclerview.CartAdapter;
 import com.example.shopee.recyclerview.MerchantAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,9 +50,19 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
     private List<User> list;
     Dialog dialog;
     FloatingActionButton cart_btn;
+    LinearLayout info;
 
     FirebaseDatabase database;
     DatabaseReference merchant;
+    int order_no;
+    double total = 0.0;
+
+    ArrayList<String> food_id = new ArrayList<>();
+    ArrayList<String> food_name = new ArrayList<>();
+    ArrayList<String> food_desc = new ArrayList<>();
+    ArrayList<String> food_price = new ArrayList<>();
+    ArrayList<String> food_image_uri = new ArrayList<>();
+    ArrayList<String> seller_id = new ArrayList<>();
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -69,16 +86,20 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         cart_btn = view.findViewById(R.id.cart_btn);
+        info = view.findViewById(R.id.info);
 
         database = FirebaseDatabase.getInstance();
         merchant = database.getReference("User");
 
         list = new ArrayList<>();
+
         merchant.orderByChild("type").equalTo("Seller").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 list.clear();
+                info.setVisibility(View.VISIBLE);
                 for(DataSnapshot post : dataSnapshot.getChildren()){
+                    info.setVisibility(View.GONE);
                     User user = post.getValue(User.class);
                     list.add(user);
                 }
@@ -96,6 +117,8 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
             RecyclerView recyclerView;
             CartAdapter adapter;
             List<Cart> cartList;
+            Button order_btn;
+            LinearLayout info;
             @Override
             public void onClick(View v) {
                 dialog.setContentView(R.layout.popup_cart);
@@ -103,6 +126,9 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                 recyclerView.setHasFixedSize(true);
                 recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                 cartList = new ArrayList<>();
+                order_btn = dialog.findViewById(R.id.order_btn);
+                info = dialog.findViewById(R.id.info);
+
                 FirebaseDatabase
                         .getInstance()
                         .getReference("Cart")
@@ -111,9 +137,17 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                             @Override
                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                 cartList.clear();
+                                info.setVisibility(View.VISIBLE);
                                 for(DataSnapshot post : dataSnapshot.getChildren()){
+                                    info.setVisibility(View.GONE);
                                     Cart cart = post.getValue(Cart.class);
-
+                                    total += Double.parseDouble(cart.getPrice());
+                                    food_id.add(cart.getId());
+                                    food_name.add(cart.getName());
+                                    food_desc.add(cart.getDescription());
+                                    food_price.add(cart.getPrice());
+                                    food_image_uri.add(cart.getImage_uri());
+                                    seller_id.add(cart.getSeller_id());
                                     cartList.add(cart);
                                 }
                                 adapter = new CartAdapter(getActivity(), cartList);
@@ -125,6 +159,79 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
 
                             }
                         });
+
+                order_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+
+                        FirebaseDatabase
+                                .getInstance()
+                                .getReference("OrderHeader")
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                order_no = (int)(dataSnapshot.getChildrenCount());
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+
+                        OrderHeader orderHeader = new OrderHeader(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                                String.valueOf(order_no + 1), String.valueOf(total), "Pending");
+                        FirebaseDatabase
+                                .getInstance()
+                                .getReference("OrderHeader")
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .child(String.valueOf(order_no + 1))
+                                .setValue(orderHeader)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+                                            for (int i = 0; i < food_id.size(); i++){
+                                                OrderDetail detail = new OrderDetail(food_id.get(i),
+                                                        food_name.get(i),
+                                                        food_desc.get(i),
+                                                        food_price.get(i),
+                                                        food_image_uri.get(i),
+                                                        seller_id.get(i),
+                                                        "Pending");
+                                                    FirebaseDatabase
+                                                        .getInstance()
+                                                        .getReference("OrderDetail")
+                                                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                        .child(String.valueOf(order_no + 1))
+                                                        .child(food_id.get(i))
+                                                        .setValue(detail)
+                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if(task.isSuccessful()){
+                                                                    Toast.makeText(getActivity(), "Your order is now on process.", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                                else{
+                                                                    Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        });
+
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("Cart")
+                                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                            .child(food_id.get(i))
+                                                            .removeValue();
+                                            }
+                                        }
+                                    }
+                                });
+                    }
+                });
                 dialog.show();
             }
         });

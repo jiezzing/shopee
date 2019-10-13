@@ -21,4 +21,31 @@
         android:backgroundTint="@color/defaultColor"
         android:tint="#FFFF"
         android:src="@drawable/ic_shopping_cart"/>
+
+    <LinearLayout
+        android:id="@+id/info"
+        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:padding="10dp"
+            android:background="@drawable/ic_info_outline"
+            android:backgroundTint="@color/colorPrimary"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textSize="19sp"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:text="THIS SELLER HAS NO PRODUCTS AT THIS MOMENT" />
+    </LinearLayout>
 </FrameLayout>

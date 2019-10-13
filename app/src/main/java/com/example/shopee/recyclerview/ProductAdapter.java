@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,14 +35,16 @@ import com.squareup.picasso.Picasso;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 
-public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> implements PreferenceManager.OnActivityResultListener {
+public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> implements PreferenceManager.OnActivityResultListener, Filterable {
     private Context context;
     private List<Product> list;
+    private List<Product> listTemp;
     private BottomSheetDialog bottomSheetDialog;
     private FirebaseDatabase database;
     private FirebaseAuth auth;
@@ -50,7 +54,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
     Boolean selected = false;
     Uri uri;
 
-    EditText mName, mDesc, mPrice, mQty;
+    EditText mName, mDesc, mPrice;
     TextView mProduct;
     ImageView add_item_photo;
     Button update_btn;
@@ -58,6 +62,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
     public ProductAdapter(Context context, List<Product> list) {
         this.context = context;
         this.list = list;
+        listTemp = new ArrayList<>(list);
     }
 
     @NonNull
@@ -73,7 +78,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         mName = bottomSheetView.findViewById(R.id.product_name);
         mDesc = bottomSheetView.findViewById(R.id.product_desc);
         mPrice = bottomSheetView.findViewById(R.id.product_price);
-        mQty = bottomSheetView.findViewById(R.id.product_qty);
         update_btn = bottomSheetView.findViewById(R.id.add_product_btn);
         mProduct = bottomSheetView.findViewById(R.id.product);
         bottomSheetDialog.setContentView(bottomSheetView);
@@ -87,7 +91,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         final String name =  product.getName();
         final String desc =  product.getDescription();
         final String price =  product.getPrice();
-        final String qty =  product.getQty();
         final String uri =  product.getImage_uri();
         final String id =  product.getId();
         final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
@@ -98,7 +101,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         productViewHolder.name.setText(name);
         productViewHolder.desc.setText(desc);
         productViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
-        productViewHolder.qty.setText(qty);
         Picasso.get().load(uri).into(productViewHolder.image);
 
         productViewHolder.delete.setOnClickListener(new View.OnClickListener() {
@@ -141,7 +143,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
                         mName.setText(dataSnapshot.child("name").getValue().toString());
                         mDesc.setText(dataSnapshot.child("description").getValue().toString());
                         mPrice.setText(dataSnapshot.child("price").getValue().toString());
-                        mQty.setText(dataSnapshot.child("qty").getValue().toString());
                         update_btn.setText("UPDATE PRODUCT");
                         Picasso.get().load(dataSnapshot.child("image_uri").getValue().toString()).into(add_item_photo);
                     }
@@ -158,23 +159,21 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         update_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HashMap<String, Object> result = new HashMap<>();
-                result.put("name", mName.getText().toString());
-                result.put("description", mDesc.getText().toString());
-                result.put("price", mPrice.getText().toString());
-                result.put("qty", mQty.getText().toString());
-                productReference.child(auth.getCurrentUser().getUid()).child(id).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(context, "Product successfully updated.", Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
-                        }
+            HashMap<String, Object> result = new HashMap<>();
+            result.put("name", mName.getText().toString());
+            result.put("description", mDesc.getText().toString());
+            result.put("price", mPrice.getText().toString());
+            productReference.child(auth.getCurrentUser().getUid()).child(id).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if(task.isSuccessful()){
+                        Toast.makeText(context, "Product successfully updated.", Toast.LENGTH_SHORT).show();
                     }
-                });
-                Toast.makeText(context, "Hahaha", Toast.LENGTH_SHORT).show();
+                    else{
+                        Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
             }
         });
 
@@ -185,7 +184,6 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                Toast.makeText(context, "HAHAHAHAH", Toast.LENGTH_SHORT).show();
                 ((Activity)context).startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
             }
         });
@@ -195,6 +193,41 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
     public int getItemCount() {
         return list.size();
     }
+
+    @Override
+    public Filter getFilter() {
+        return filter;
+    }
+
+    private Filter filter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            List<Product> filteredList = new ArrayList<>();
+
+            if(constraint == null || constraint.length() == 0){
+                filteredList.addAll(listTemp);
+            }
+            else{
+                String filterPattern = constraint.toString().toLowerCase().trim();
+                for(Product product : listTemp){
+                    if(product.getName().toLowerCase().contains(filterPattern)){
+                        filteredList.add(product);
+                    }
+                }
+            }
+
+            FilterResults results = new FilterResults();
+            results.values =  filteredList;
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            list.clear();
+            list.addAll((List)results.values);
+            notifyDataSetChanged();
+        }
+    };
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {

@@ -83,7 +83,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProductsFragment()).commit();
             navigationView.setCheckedItem(R.id.products);
-            Objects.requireNonNull(getSupportActionBar()).setTitle("Orders");
+            Objects.requireNonNull(getSupportActionBar()).setTitle("Customers");
         }
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
@@ -93,7 +93,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         switch (menuItem.getItemId()){
             case R.id.order:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OrdersFragment()).commit();
-                Objects.requireNonNull(getSupportActionBar()).setTitle("Orders");
+                Objects.requireNonNull(getSupportActionBar()).setTitle("Customers");
                 break;
             case R.id.products:
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProductsFragment()).commit();

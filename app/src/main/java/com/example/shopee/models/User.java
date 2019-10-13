@@ -9,12 +9,13 @@ public class User {
     private String type;
     private String address;
     private String phone;
+    private String image_uri;
     private String status;
 
     public User() {
     }
 
-    public User(String id, String firstname, String lastname, String email, String password, String type, String address, String phone, String status) {
+    public User(String id, String firstname, String lastname, String email, String password, String type, String address, String phone, String image_uri, String status) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -23,6 +24,7 @@ public class User {
         this.type = type;
         this.address = address;
         this.phone = phone;
+        this.image_uri = image_uri;
         this.status = status;
     }
 
@@ -88,6 +90,14 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getImage_uri() {
+        return image_uri;
+    }
+
+    public void setImage_uri(String image_uri) {
+        this.image_uri = image_uri;
     }
 
     public String getStatus() {

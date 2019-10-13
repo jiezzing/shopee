@@ -1,23 +1,25 @@
 package com.example.shopee.models;
 
-public class Cart {
+public class OrderDetail {
     private String id;
     private String name;
     private String description;
     private String price;
     private String image_uri;
     private String seller_id;
+    private String status;
 
-    public Cart() {
+    public OrderDetail() {
     }
 
-    public Cart(String id, String name, String description, String price, String image_uri, String seller_id) {
+    public OrderDetail(String id, String name, String description, String price, String image_uri, String seller_id, String status) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.image_uri = image_uri;
         this.seller_id = seller_id;
+        this.status = status;
     }
 
     public String getId() {
@@ -66,5 +68,13 @@ public class Cart {
 
     public void setSeller_id(String seller_id) {
         this.seller_id = seller_id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

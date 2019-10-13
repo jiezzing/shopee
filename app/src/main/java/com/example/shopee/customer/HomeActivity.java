@@ -83,6 +83,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Objects.requireNonNull(getSupportActionBar()).setTitle("Merchant");
                 break;
             case R.id.order:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OrderFragment()).commit();
+                Objects.requireNonNull(getSupportActionBar()).setTitle("My Orders");
                 break;
             case R.id.profile:
                 String user_id = auth.getCurrentUser().getUid();

@@ -57,18 +57,6 @@
             android:layout_below="@+id/product_desc"
             android:background="@drawable/et_border"
             android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/product_qty"
-            android:layout_width="match_parent"
-            android:layout_margin="5dp"
-            android:inputType="number"
-            android:hint="@string/qty"
-            android:padding="10dp"
-            android:layout_toEndOf="@+id/add_item_photo"
-            android:layout_below="@+id/product_price"
-            android:background="@drawable/et_border"
-            android:layout_height="wrap_content"/>
     </RelativeLayout>
     <Button
         android:id="@+id/add_product_btn"
