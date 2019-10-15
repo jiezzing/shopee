@@ -1,6 +1,7 @@
 package com.example.shopee;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -17,12 +19,16 @@ import android.widget.Toast;
 
 import com.example.shopee.models.User;
 import com.example.shopee.seller.HomeActivity;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -36,7 +42,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+    private int RC_SIGN_IN = 0;
     Button login;
     TextView create_account;
     SignInButton google_sign_in;
@@ -45,14 +52,23 @@ public class LoginActivity extends AppCompatActivity {
 
 
     FirebaseAuth auth;
-    FirebaseAuth.AuthStateListener authStateListener;
-    FirebaseUser firebaseUser;
     DatabaseReference user;
+
+    GoogleApiClient googleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this,  this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
         // Initialize
         login = findViewById(R.id.login);
@@ -68,37 +84,16 @@ public class LoginActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         user = FirebaseDatabase.getInstance().getReference("User");
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
+        google_sign_in.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                firebaseUser = auth.getCurrentUser();
-                if(firebaseUser != null){
-                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    user.child(userId).addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            String type = dataSnapshot.child("type").getValue().toString();
-                            if(type.equals("Customer")){
-                                progressDialog.dismiss();
-                                startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
-                            }
-                            else{
-                                progressDialog.dismiss();
-                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-                else{
-                    progressDialog.dismiss();
+            public void onClick(View v) {
+                switch (v.getId()){
+                    case R.id.google_sign_in:
+                        signIn();
+                        break;
                 }
             }
-        };
+        });
 
         create_account.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,6 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                 String mEmail = email.getText().toString();
                 String mPassword = password.getText().toString();
 
+                closeKeyboard();
                 if(TextUtils.isEmpty(email.getText())){
                     email.setError("Required");
                     email.requestFocus();
@@ -127,9 +123,32 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if(task.isSuccessful()){
-                                progressDialog.dismiss();
-                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                                finish();
+                                if(auth.getCurrentUser() != null){
+                                    progressDialog.show();
+                                    user.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            String type = dataSnapshot.child("type").getValue().toString();
+                                            if(type.trim().equals("Customer")){
+                                                progressDialog.dismiss();
+                                                startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
+                                                finish();
+                                            }
+                                            else{
+                                                if(type.trim().equals("Seller")){
+                                                    progressDialog.dismiss();
+                                                    startActivity(new Intent(LoginActivity.this, com.example.shopee.seller.HomeActivity.class));
+                                                    finish();
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                        }
+                                    });
+                                }
                             }
                             else{
                                 progressDialog.dismiss();
@@ -142,10 +161,80 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void closeKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
-        progressDialog.show();
-        auth.addAuthStateListener(authStateListener);
+
+        if(googleApiClient != null && googleApiClient.isConnected()){
+            progressDialog.dismiss();
+            startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
+            finish();
+        }
+        else if(auth.getCurrentUser() != null){
+            progressDialog.show();
+            user.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String type = dataSnapshot.child("type").getValue().toString();
+                    if(type.trim().equals("Customer")){
+                        progressDialog.dismiss();
+                        startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
+                        finish();
+                    }
+                    else{
+                        if(type.trim().equals("Seller")){
+                            progressDialog.dismiss();
+                            startActivity(new Intent(LoginActivity.this, com.example.shopee.seller.HomeActivity.class));
+                            finish();
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+
+    private void signIn() {
+        Intent intent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+        startActivityForResult(intent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == RC_SIGN_IN){
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignResult(result);
+        }
+    }
+
+    private void handleSignResult(GoogleSignInResult result){
+
+        Log.d("Tag", "Handle sign in result: " + result.isSuccess());
+        if(result.isSuccess()){
+            GoogleSignInAccount account = result.getSignInAccount();
+            Intent intent = new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class);
+            intent.putExtra("firstname", account.getGivenName());
+            intent.putExtra("lastname", account.getFamilyName());
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, "Error: " + connectionResult.getErrorCode(), Toast.LENGTH_SHORT).show();
     }
 }

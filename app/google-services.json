@@ -8,12 +8,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:533621629505:android:58676d125a0cba0f709cc0",
+        "mobilesdk_app_id": "1:533621629505:android:49d95229d5750629709cc0",
         "android_client_info": {
           "package_name": "com.example.shopee"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "533621629505-g9u7gedjpqd4g8l3vb0uhtdhllhds94n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopee",
+            "certificate_hash": "4897769fc54862c7c46569606af66dc43c44d9fa"
+          }
+        },
         {
           "client_id": "533621629505-ugr7hp304nk5o3s2jb8ijdrvs4pgak9e.apps.googleusercontent.com",
           "client_type": 3

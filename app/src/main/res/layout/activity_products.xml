@@ -43,9 +43,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:textSize="19sp"
+            android:textSize="16sp"
             android:layout_gravity="center"
-            android:textAlignment="center"
-            android:text="THIS SELLER HAS NO PRODUCTS AT THIS MOMENT" />
+            android:text="This seller has no products available" />
     </LinearLayout>
 </FrameLayout>

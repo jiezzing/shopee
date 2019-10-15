@@ -17,7 +17,10 @@ import com.example.shopee.models.Cart;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.math.BigDecimal;
@@ -41,13 +44,14 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CartViewHolder cartViewHolder, int i) {
+    public void onBindViewHolder(@NonNull final CartViewHolder cartViewHolder, int i) {
         final Cart cart =  list.get(i);
         final String name =  cart.getName();
         final String desc =  cart.getDescription();
         final String price =  cart.getPrice();
         final String uri =  cart.getImage_uri();
         final String id =  cart.getId();
+        final String seller_id =  cart.getSeller_id();
         final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setCancelable(false);
         dialog.setTitle("Confirmation");
@@ -57,6 +61,25 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         cartViewHolder.desc.setText(desc);
         cartViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
         Picasso.get().load(uri).into(cartViewHolder.image);
+
+        FirebaseDatabase
+                .getInstance()
+                .getReference("User")
+                .child(seller_id)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        String firstname = dataSnapshot.child("firstname").getValue().toString();
+                        String lastname = dataSnapshot.child("lastname").getValue().toString();
+                        String name = firstname + " " + lastname;
+                        cartViewHolder.seller_name.setText(name);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
         cartViewHolder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,15 +123,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
 }
 
 class CartViewHolder extends RecyclerView.ViewHolder {
-    public TextView name, desc, price, qty, edit, delete;
+    public TextView name, desc, price, seller_name, edit, delete;
     public ImageView image;
     public CartViewHolder(@NonNull View itemView) {
         super(itemView);
         name = itemView.findViewById(R.id.name);
         desc = itemView.findViewById(R.id.desc);
         price = itemView.findViewById(R.id.price);
-        qty = itemView.findViewById(R.id.qty);
         image = itemView.findViewById(R.id.image);
+        seller_name = itemView.findViewById(R.id.seller_name);
         edit = itemView.findViewById(R.id.edit);
         delete = itemView.findViewById(R.id.delete);
     }

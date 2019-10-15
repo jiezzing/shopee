@@ -155,7 +155,7 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
 }
 
 class ShowAllSellerProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-    public TextView name, desc, price, qty;
+    public TextView name, desc, price;
     public ImageView image;
     public ItemClickListener itemClickListener;
 
@@ -168,7 +168,6 @@ class ShowAllSellerProductViewHolder extends RecyclerView.ViewHolder implements 
         name = itemView.findViewById(R.id.name);
         desc = itemView.findViewById(R.id.desc);
         price = itemView.findViewById(R.id.price);
-        qty = itemView.findViewById(R.id.qty);
         image = itemView.findViewById(R.id.image);
 
         itemView.setOnClickListener(this);

@@ -18,7 +18,7 @@
         android:layout_height="wrap_content">
         <ImageView
             android:id="@+id/add_item_photo"
-            android:background="@drawable/ic_insert_photo"
+            android:background="@drawable/item_uknown"
             android:scaleType="centerCrop"
             android:layout_margin="5dp"
             android:layout_width="150dp"

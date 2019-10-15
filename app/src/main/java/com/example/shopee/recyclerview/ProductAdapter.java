@@ -236,14 +236,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
 }
 
 class ProductViewHolder extends RecyclerView.ViewHolder{
-    public TextView name, desc, price, qty, edit, delete;
+    public TextView name, desc, price, edit, delete;
     public ImageView image;
     public ProductViewHolder(@NonNull View itemView) {
         super(itemView);
         name = itemView.findViewById(R.id.name);
         desc = itemView.findViewById(R.id.desc);
         price = itemView.findViewById(R.id.price);
-        qty = itemView.findViewById(R.id.qty);
         image = itemView.findViewById(R.id.image);
         edit = itemView.findViewById(R.id.edit);
         delete = itemView.findViewById(R.id.delete);

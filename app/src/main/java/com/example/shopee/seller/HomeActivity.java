@@ -81,9 +81,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         actionBarDrawerToggle.syncState();
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new ProductsFragment()).commit();
-            navigationView.setCheckedItem(R.id.products);
-            Objects.requireNonNull(getSupportActionBar()).setTitle("Customers");
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OrdersFragment()).commit();
+            navigationView.setCheckedItem(R.id.order);
+            Objects.requireNonNull(getSupportActionBar()).setTitle("Orders");
         }
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
@@ -144,8 +144,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(com.example.shopee.seller.HomeActivity.this, LoginActivity.class));
                 finish();
-                startActivity(new Intent(HomeActivity.this, LoginActivity.class));
                 break;
         }
         drawerLayout.closeDrawer(GravityCompat.START);

@@ -142,22 +142,21 @@ public class CreateAccountActivity extends AppCompatActivity {
                                             result.addOnSuccessListener(new OnSuccessListener<Uri>() {
                                                 @Override
                                                 public void onSuccess(Uri uri) {
-
                                                     User user = new User(userId, mFirstname, mLastName, mEmail, mPassword, type, mAddress, mPhone, uri.toString(), "active");
                                                     userRef.child(userId).setValue(user)
-                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                            @Override
-                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                if(task.isSuccessful()){
-                                                                    progressDialog.dismiss();
-                                                                    Toast.makeText(CreateAccountActivity.this, "Account created successfully.", Toast.LENGTH_SHORT).show();
-                                                                    startActivity(new Intent(CreateAccountActivity.this, LoginActivity.class));
+                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    if(task.isSuccessful()){
+                                                                        progressDialog.dismiss();
+                                                                        Toast.makeText(CreateAccountActivity.this, "Account created successfully.", Toast.LENGTH_SHORT).show();
+                                                                        startActivity(new Intent(CreateAccountActivity.this, LoginActivity.class));
+                                                                    }
+                                                                    else{
+                                                                        Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again.", Toast.LENGTH_SHORT).show();
+                                                                    }
                                                                 }
-                                                                else{
-                                                                    Toast.makeText(CreateAccountActivity.this, "An error occurred, please try again.", Toast.LENGTH_SHORT).show();
-                                                                }
-                                                            }
-                                                        });
+                                                            });
                                                 }
                                             });
                                         }

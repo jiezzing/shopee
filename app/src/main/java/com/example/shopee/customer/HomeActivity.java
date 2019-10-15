@@ -3,6 +3,7 @@ package com.example.shopee.customer;
 import android.app.Dialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -10,6 +11,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
@@ -17,6 +19,15 @@ import android.widget.Toast;
 
 import com.example.shopee.LoginActivity;
 import com.example.shopee.R;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,7 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.Objects;
 
-public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     Dialog dialog;
@@ -37,14 +48,38 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     FirebaseAuth auth;
     DatabaseReference user;
 
+    GoogleApiClient googleApiClient;
+    GoogleSignInResult result;
+    GoogleSignInAccount account;
+
+    String gFirstname, gLastname, gEmail;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_customer);
 
+
         database = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();
         user = database.getReference("User");
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this,  this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
+
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if(account != null){
+            gFirstname = account.getGivenName();
+            gLastname = account.getFamilyName();
+            gEmail = account.getEmail();
+        }
 
         bottomSheetDialog = new BottomSheetDialog(this);
         view = getLayoutInflater().inflate(R.layout.account_bottomsheet_layout, null);
@@ -87,30 +122,46 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Objects.requireNonNull(getSupportActionBar()).setTitle("My Orders");
                 break;
             case R.id.profile:
-                String user_id = auth.getCurrentUser().getUid();
-                user.child(user_id).addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        firstname.setText(dataSnapshot.child("firstname").getValue().toString());
-                        lastname.setText(dataSnapshot.child("lastname").getValue().toString());
-                        phone.setText(dataSnapshot.child("phone").getValue().toString());
-                        address.setText(dataSnapshot.child("address").getValue().toString());
-                        email.setText(dataSnapshot.child("email").getValue().toString());
-                        password.setText(dataSnapshot.child("password").getValue().toString());
-                        type.setText(dataSnapshot.child("type").getValue().toString());
-                    }
+                if(auth.getCurrentUser() != null){
+                    String user_id = auth.getCurrentUser().getUid();
+                    user.child(user_id).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            firstname.setText(dataSnapshot.child("firstname").getValue().toString());
+                            lastname.setText(dataSnapshot.child("lastname").getValue().toString());
+                            phone.setText(dataSnapshot.child("phone").getValue().toString());
+                            address.setText(dataSnapshot.child("address").getValue().toString());
+                            email.setText(dataSnapshot.child("email").getValue().toString());
+                            password.setText(dataSnapshot.child("password").getValue().toString());
+                            type.setText(dataSnapshot.child("type").getValue().toString());
+                        }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                        }
+                    });
+                }
+                else{
+                    firstname.setText(gFirstname);
+                    lastname.setText(gLastname);
+                    phone.setText("No mobile # attached");
+                    address.setText("No address attached");
+                    email.setText(gEmail);
+                    password.setText("********");
+                    type.setText("Customer");
+                }
                 bottomSheetDialog.show();
                 break;
             case R.id.logout:
                 FirebaseAuth.getInstance().signOut();
-                finish();
+                Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        startActivity(new Intent(com.example.shopee.customer.HomeActivity.this, LoginActivity.class));
+                    }
+                });
                 startActivity(new Intent(com.example.shopee.customer.HomeActivity.this, LoginActivity.class));
+                finish();
                 break;
         }
         drawerLayout.closeDrawer(GravityCompat.START);
@@ -132,5 +183,26 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(this, "Error: " + connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+//        account = result.getSignInAccount();
+//        if(account != null){
+//            firstname.setText(account.getGivenName());
+//            lastname.setText(account.getFamilyName());
+//            phone.setText("No phone number attached");
+//            address.setText("No address number attached");
+//            email.setText(account.getEmail());
+//            password.setText("***********");
+//            type.setText("Customer");
+//            haha = account.getGivenName();
+//        }
     }
 }
