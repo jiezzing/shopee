@@ -5,10 +5,24 @@
     android:background="@drawable/header"
     android:layout_height="180dp">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/user_image"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="50dp"
+        android:layout_marginLeft="10dp"
+        android:layout_height="50dp"
+        android:layout_above="@+id/google_email"/>
+
+    <TextView
+        android:id="@+id/google_email"
+        android:layout_width="wrap_content"
+        android:text="jiezzing@gmail.com"
+        android:layout_marginLeft="10dp"
+        android:padding="5dp"
+        android:layout_marginBottom="10dp"
+        android:textColor="#C9FFFFFF"
+        android:textSize="12sp"
         android:layout_alignParentBottom="true"
-        android:layout_margin="20dp"/>
+        android:layout_height="wrap_content">
+
+    </TextView>
 </RelativeLayout>

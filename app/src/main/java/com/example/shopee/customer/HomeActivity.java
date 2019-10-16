@@ -2,6 +2,7 @@ package com.example.shopee.customer;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomSheetDialog;
@@ -14,7 +15,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.LoginActivity;
@@ -23,18 +26,24 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
+
+import java.util.HashMap;
 import java.util.Objects;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
     private DrawerLayout drawerLayout;
@@ -43,16 +52,18 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     BottomSheetDialog bottomSheetDialog;
     View view;
     EditText firstname, lastname, phone, address, email, password ,type;
+    TextView account_info, google_email;
+    Button update;
+    CircleImageView user_image;
 
     FirebaseDatabase database;
     FirebaseAuth auth;
     DatabaseReference user;
 
     GoogleApiClient googleApiClient;
-    GoogleSignInResult result;
-    GoogleSignInAccount account;
 
     String gFirstname, gLastname, gEmail;
+    Uri uri;
 
 
     @Override
@@ -74,13 +85,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if(account != null){
-            gFirstname = account.getGivenName();
-            gLastname = account.getFamilyName();
-            gEmail = account.getEmail();
-        }
-
         bottomSheetDialog = new BottomSheetDialog(this);
         view = getLayoutInflater().inflate(R.layout.account_bottomsheet_layout, null);
         firstname = view.findViewById(R.id.firstname);
@@ -90,6 +94,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         email = view.findViewById(R.id.email);
         password = view.findViewById(R.id.password);
         type = view.findViewById(R.id.user_type);
+        account_info = view.findViewById(R.id.account_info);
+        update = view.findViewById(R.id.update);
         bottomSheetDialog.setContentView(view);
 
         dialog = new Dialog(this);
@@ -100,6 +106,38 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        user_image = header.findViewById(R.id.user_image);
+        google_email = header.findViewById(R.id.google_email);
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if(account != null){
+            gFirstname = account.getGivenName();
+            gLastname = account.getFamilyName();
+            gEmail = account.getEmail();
+            uri = account.getPhotoUrl();
+            Picasso.get().load(String.valueOf(uri)).into(user_image);
+            google_email.setText(gEmail);
+        }
+        else{
+            FirebaseDatabase
+                    .getInstance()
+                    .getReference("User")
+                    .child(auth.getCurrentUser().getUid())
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            String uri = dataSnapshot.child("image_uri").getValue().toString();
+                            String email = dataSnapshot.child("email").getValue().toString();
+                            Picasso.get().load(uri).into(user_image);
+                            google_email.setText(email);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+        }
 
         actionBarDrawerToggle.syncState();
         if (savedInstanceState == null) {
@@ -149,19 +187,54 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     email.setText(gEmail);
                     password.setText("********");
                     type.setText("Customer");
+                    firstname.setEnabled(false);
+                    lastname.setEnabled(false);
+                    phone.setEnabled(false);
+                    address.setEnabled(false);
+                    account_info.setText("If you want to update your personal information, please use the Google application.");
+                    update.setVisibility(View.GONE);
                 }
+
+                    update.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            HashMap<String, Object> result = new HashMap<>();
+                            result.put("firstname", firstname.getText().toString());
+                            result.put("lastname", lastname.getText().toString());
+                            result.put("phone", phone.getText().toString());
+                            result.put("address", address.getText().toString());
+                            if(auth.getCurrentUser() != null){
+                                user.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful()){
+                                            Toast.makeText(HomeActivity.this, "Account successfully updated.", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else{
+                                            Toast.makeText(HomeActivity.this, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    });
                 bottomSheetDialog.show();
                 break;
             case R.id.logout:
-                FirebaseAuth.getInstance().signOut();
-                Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
+                if (auth.getCurrentUser() != null){
+                    FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(com.example.shopee.customer.HomeActivity.this, LoginActivity.class));
+                    finish();
+                }
+                else{
+                    Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
+                        @Override
+                        public void onResult(@NonNull Status status) {
                         startActivity(new Intent(com.example.shopee.customer.HomeActivity.this, LoginActivity.class));
-                    }
-                });
-                startActivity(new Intent(com.example.shopee.customer.HomeActivity.this, LoginActivity.class));
-                finish();
+                        finish();
+                        }
+                    });
+                }
                 break;
         }
         drawerLayout.closeDrawer(GravityCompat.START);
@@ -191,18 +264,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-//        account = result.getSignInAccount();
-//        if(account != null){
-//            firstname.setText(account.getGivenName());
-//            lastname.setText(account.getFamilyName());
-//            phone.setText("No phone number attached");
-//            address.setText("No address number attached");
-//            email.setText(account.getEmail());
-//            password.setText("***********");
-//            type.setText("Customer");
-//            haha = account.getGivenName();
-//        }
+    protected void onDestroy() {
+        super.onDestroy();
+        bottomSheetDialog.dismiss();
     }
 }

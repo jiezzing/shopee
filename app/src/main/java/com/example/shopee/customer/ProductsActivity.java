@@ -23,6 +23,8 @@ import com.example.shopee.models.Product;
 import com.example.shopee.recyclerview.CartAdapter;
 import com.example.shopee.recyclerview.ProductAdapter;
 import com.example.shopee.recyclerview.ShowAllSellerProductAdapter;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -52,6 +54,7 @@ public class ProductsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_products);
 
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         dialog = new Dialog(this);
         seller_id = getIntent().getStringExtra("user_id");
 
@@ -101,7 +104,8 @@ public class ProductsActivity extends AppCompatActivity {
                 cartList = new ArrayList<>();
                 order_btn = dialog.findViewById(R.id.order_btn);
                 info = dialog.findViewById(R.id.info);
-                FirebaseDatabase
+                if(auth.getCurrentUser() != null){
+                    FirebaseDatabase
                         .getInstance()
                         .getReference("Cart")
                         .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
@@ -124,6 +128,32 @@ public class ProductsActivity extends AppCompatActivity {
 
                             }
                         });
+                }
+                else{
+                    FirebaseDatabase
+                        .getInstance()
+                        .getReference("Cart")
+                        .child(account.getId())
+                        .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                cartList.clear();
+                                info.setVisibility(View.VISIBLE);
+                                for(DataSnapshot post : dataSnapshot.getChildren()){
+                                    info.setVisibility(View.GONE);
+                                    Cart cart = post.getValue(Cart.class);
+                                    cartList.add(cart);
+                                }
+                                adapter = new CartAdapter(ProductsActivity.this, cartList);
+                                recyclerView.setAdapter(adapter);
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                }
                 dialog.show();
             }
         });

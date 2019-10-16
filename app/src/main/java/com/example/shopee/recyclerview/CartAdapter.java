@@ -13,7 +13,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
+import com.example.shopee.customer.SellerFragment;
 import com.example.shopee.models.Cart;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,6 +33,7 @@ import java.util.List;
 public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     private Context context;
     private List<Cart> list;
+    String google_id;
 
     public CartAdapter(Context context, List<Cart> list) {
         this.context = context;
@@ -40,6 +44,10 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     @Override
     public CartViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(context).inflate(R.layout.carted_product, viewGroup, false);
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        if(account != null){
+            google_id = account.getId();
+        }
         return new CartViewHolder(view);
     }
 
@@ -61,6 +69,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         cartViewHolder.desc.setText(desc);
         cartViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
         Picasso.get().load(uri).into(cartViewHolder.image);
+
+        SellerFragment.food_id.add(id);
+        SellerFragment.food_name.add(name);
+        SellerFragment.food_desc.add(desc);
+        SellerFragment.food_price.add(price);
+        SellerFragment.food_image_uri.add(uri);
+        SellerFragment.seller_id.add(seller_id);
 
         FirebaseDatabase
                 .getInstance()
@@ -88,21 +103,41 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                 dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                    FirebaseDatabase
-                        .getInstance()
-                        .getReference("Cart")
-                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                        .child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful()){
-                                Toast.makeText(context, "Removed from cart.", Toast.LENGTH_SHORT).show();
+                    if(FirebaseAuth.getInstance().getCurrentUser() != null){
+                        FirebaseDatabase
+                                .getInstance()
+                                .getReference("Cart")
+                                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                .child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()){
+                                    Toast.makeText(context, "Removed from cart.", Toast.LENGTH_SHORT).show();
+                                }
+                                else{
+                                    Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                }
                             }
-                            else{
-                                Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                    else{
+                        FirebaseDatabase
+                                .getInstance()
+                                .getReference("Cart")
+                                .child(google_id)
+                                .child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()){
+                                    Toast.makeText(context, "Removed from cart.", Toast.LENGTH_SHORT).show();
+                                }
+                                else{
+                                    Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override

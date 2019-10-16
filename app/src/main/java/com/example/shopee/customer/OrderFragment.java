@@ -14,6 +14,8 @@ import com.example.shopee.R;
 import com.example.shopee.models.OrderDetail;
 import com.example.shopee.models.OrderHeader;
 import com.example.shopee.recyclerview.OrderAdapter;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -45,6 +47,7 @@ public class OrderFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_order, container, false);
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getActivity());
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -53,7 +56,9 @@ public class OrderFragment extends Fragment {
         database = FirebaseDatabase.getInstance();
 
         list = new ArrayList<>();
-        FirebaseDatabase
+
+        if(auth.getCurrentUser() != null){
+            FirebaseDatabase
                 .getInstance()
                 .getReference("OrderHeader")
                 .child(auth.getCurrentUser().getUid())
@@ -74,6 +79,30 @@ public class OrderFragment extends Fragment {
 
                     }
                 });
+        }
+        else{
+            FirebaseDatabase
+                .getInstance()
+                .getReference("OrderHeader")
+                .child(account.getId())
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        list.clear();
+                        for(DataSnapshot post : dataSnapshot.getChildren()){
+                            OrderHeader header = post.getValue(OrderHeader.class);
+                            list.add(header);
+                        }
+                        adapter = new OrderAdapter(getActivity(), list);
+                        recyclerView.setAdapter(adapter);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+        }
         return view;
     }
 

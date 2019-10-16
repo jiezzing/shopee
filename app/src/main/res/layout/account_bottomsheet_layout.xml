@@ -118,6 +118,7 @@
             android:layout_height="wrap_content"/>
 
         <TextView
+            android:id="@+id/account_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="3dp"

@@ -108,7 +108,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 String mEmail = email.getText().toString();
                 String mPassword = password.getText().toString();
 
-                closeKeyboard();
                 if(TextUtils.isEmpty(email.getText())){
                     email.setError("Required");
                     email.requestFocus();
@@ -161,24 +160,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         });
     }
 
-    private void closeKeyboard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
 
-        if(googleApiClient != null && googleApiClient.isConnected()){
-            progressDialog.dismiss();
-            startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
-            finish();
-        }
-        else if(auth.getCurrentUser() != null){
+        if(auth.getCurrentUser() != null){
             progressDialog.show();
             user.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
@@ -203,6 +189,14 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                 }
             });
+        }
+        else{
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+            if(account != null){
+                progressDialog.show();
+                startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
+                finish();
+            }
         }
     }
 
@@ -236,5 +230,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(this, "Error: " + connectionResult.getErrorCode(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        progressDialog.dismiss();
     }
 }

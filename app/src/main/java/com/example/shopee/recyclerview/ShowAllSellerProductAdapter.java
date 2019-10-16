@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
@@ -17,9 +16,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
+import com.example.shopee.customer.SellerFragment;
 import com.example.shopee.events.ItemClickListener;
 import com.example.shopee.models.Cart;
 import com.example.shopee.models.Product;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,7 +40,7 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
     private List<Product> listTemp;
     BottomSheetDialog bottomSheetDialog;
     Button add_to_cart;
-
+    String google_id;
     FirebaseDatabase database;
     FirebaseAuth auth;
     DatabaseReference cartRef;
@@ -56,6 +58,10 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         database = FirebaseDatabase.getInstance();
         auth = FirebaseAuth.getInstance();
         cartRef = database.getReference("Cart");
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(context);
+        if(account != null){
+            google_id = account.getId();
+        }
         bottomSheetDialog = new BottomSheetDialog(context);
         View bottomSheetView = LayoutInflater.from(context).inflate(R.layout.add_cart_bottomsheet_layout, null);
         add_to_cart = bottomSheetView.findViewById(R.id.add_to_cart);
@@ -98,18 +104,34 @@ public class ShowAllSellerProductAdapter extends RecyclerView.Adapter<ShowAllSel
         add_to_cart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cart cart = new Cart(itemId, itemName, itemDesc, itemPrice, itemUri, sellerId);
-                cartRef.child(auth.getCurrentUser().getUid()).child(itemId).setValue(cart).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(context, "Added to cart.", Toast.LENGTH_SHORT).show();
+                if(auth.getCurrentUser() != null){
+                    Cart cart = new Cart(itemId, itemName, itemDesc, itemPrice, itemUri, sellerId);
+                    cartRef.child(auth.getCurrentUser().getUid()).child(itemId).setValue(cart).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                Toast.makeText(context, "Added to cart.", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        else{
-                            Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                    });
+                }
+                else{
+                    Cart cart = new Cart(itemId, itemName, itemDesc, itemPrice, itemUri, sellerId);
+                    cartRef.child(google_id).child(itemId).setValue(cart).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if(task.isSuccessful()){
+                                Toast.makeText(context, "Added to cart.", Toast.LENGTH_SHORT).show();
+                            }
+                            else{
+                                Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         });
     }

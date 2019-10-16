@@ -2,7 +2,6 @@ package com.example.shopee.seller;
 
 import android.app.Dialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.design.widget.NavigationView;
@@ -16,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.LoginActivity;
@@ -30,15 +30,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 import java.util.Objects;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     Dialog dialog;
-    ImageView user_image;
+    CircleImageView user_image;
+    TextView google_email;
     BottomSheetDialog bottomSheetDialog;
     View view;
     EditText firstname, lastname, phone, address, email, password ,type;
@@ -57,7 +61,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         auth = FirebaseAuth.getInstance();
         user = database.getReference("User");
 
-        user_image = findViewById(R.id.user_image);
         bottomSheetDialog = new BottomSheetDialog(this);
         view = getLayoutInflater().inflate(R.layout.account_bottomsheet_layout, null);
         firstname = view.findViewById(R.id.firstname);
@@ -78,12 +81,33 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        View header = navigationView.getHeaderView(0);
+        user_image = header.findViewById(R.id.user_image);
+        google_email = header.findViewById(R.id.google_email);
+        FirebaseDatabase
+            .getInstance()
+            .getReference("User")
+            .child(auth.getCurrentUser().getUid())
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String uri = dataSnapshot.child("image_uri").getValue().toString();
+                    String email = dataSnapshot.child("email").getValue().toString();
+                    Picasso.get().load(uri).into(user_image);
+                    google_email.setText(email);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
 
         actionBarDrawerToggle.syncState();
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new OrdersFragment()).commit();
             navigationView.setCheckedItem(R.id.order);
-            Objects.requireNonNull(getSupportActionBar()).setTitle("Orders");
+            Objects.requireNonNull(getSupportActionBar()).setTitle("Customers");
         }
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
     }
@@ -127,17 +151,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         result.put("lastname", lastname.getText().toString());
                         result.put("phone", phone.getText().toString());
                         result.put("address", address.getText().toString());
-                        user.child(user_id).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()){
-                                    Toast.makeText(HomeActivity.this, "Account successfully updated.", Toast.LENGTH_SHORT).show();
+                        if(auth.getCurrentUser() != null){
+                            user.child(user_id).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()){
+                                        Toast.makeText(HomeActivity.this, "Account successfully updated.", Toast.LENGTH_SHORT).show();
+                                    }
+                                    else{
+                                        Toast.makeText(HomeActivity.this, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                                else{
-                                    Toast.makeText(HomeActivity.this, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                            });
+                        }
                     }
                 });
                 bottomSheetDialog.show();
@@ -168,4 +194,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bottomSheetDialog.dismiss();
+    }
+
 }
