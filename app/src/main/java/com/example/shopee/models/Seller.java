@@ -1,6 +1,9 @@
 package com.example.shopee.models;
 
 public class Seller {
+    private String seller_no;
+    private String order_no;
+    private String customer_no;
     private String id;
     private String name;
     private String description;
@@ -12,7 +15,10 @@ public class Seller {
     public Seller() {
     }
 
-    public Seller(String id, String name, String description, String price, String image_uri, String seller_id, String status) {
+    public Seller(String seller_no, String order_no, String customer_no, String id, String name, String description, String price, String image_uri, String seller_id, String status) {
+        this.seller_no = seller_no;
+        this.order_no = order_no;
+        this.customer_no = customer_no;
         this.id = id;
         this.name = name;
         this.description = description;
@@ -20,6 +26,30 @@ public class Seller {
         this.image_uri = image_uri;
         this.seller_id = seller_id;
         this.status = status;
+    }
+
+    public String getSeller_no() {
+        return seller_no;
+    }
+
+    public void setSeller_no(String seller_no) {
+        this.seller_no = seller_no;
+    }
+
+    public String getOrder_no() {
+        return order_no;
+    }
+
+    public void setOrder_no(String order_no) {
+        this.order_no = order_no;
+    }
+
+    public String getCustomer_no() {
+        return customer_no;
+    }
+
+    public void setCustomer_no(String customer_no) {
+        this.customer_no = customer_no;
     }
 
     public String getId() {

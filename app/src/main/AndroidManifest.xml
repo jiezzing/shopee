@@ -11,7 +11,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".customer.OrderedProductActivity"></activity>
+        <activity android:name=".seller.CustomerOrderActivity"
+            android:theme="@style/Theme.AppCompat.Light"/>
+        <activity android:name=".customer.OrderedProductActivity"
+            android:theme="@style/Theme.AppCompat.Light"
+            android:label="Ordered Products"/>
         <activity
             android:name=".customer.ProductsActivity"
             android:label="Products"

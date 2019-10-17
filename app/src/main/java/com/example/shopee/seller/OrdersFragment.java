@@ -13,12 +13,8 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.shopee.R;
-import com.example.shopee.models.OrderDetail;
-import com.example.shopee.models.OrderHeader;
-import com.example.shopee.models.Seller;
 import com.example.shopee.models.User;
 import com.example.shopee.recyclerview.CustomerAdapter;
-import com.example.shopee.recyclerview.OrderAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -40,7 +36,7 @@ public class OrdersFragment extends Fragment {
     FirebaseDatabase database;
     FirebaseAuth auth;
 
-    ArrayList<String> customerId = new ArrayList<>();
+    ArrayList<String> id = new ArrayList<>();
     public OrdersFragment() {
         // Required empty public constructor
     }
@@ -60,33 +56,35 @@ public class OrdersFragment extends Fragment {
 
         list = new ArrayList<>();
 
-        database.getReference("SellerFile")
+        database.getReference("Seller")
                 .child(auth.getCurrentUser().getUid())
                 .addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                list.clear();
                 for (final DataSnapshot mUser : dataSnapshot.getChildren()){
                     database.getReference("User")
-                        .orderByChild("id")
-                        .equalTo(mUser.getKey())
-                        .addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                list.clear();
-                                for(DataSnapshot post: dataSnapshot.getChildren()){
-                                    User user = post.getValue(User.class);
-                                    list.add(user);
+                            .orderByChild("id")
+                            .equalTo(mUser.getKey())
+                            .addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    for(DataSnapshot post: dataSnapshot.getChildren()){
+                                        User user = post.getValue(User.class);
+                                        list.add(user);
+                                    }
+                                    adapter = new CustomerAdapter(getActivity(), list);
+                                    recyclerView.setAdapter(adapter);
                                 }
-                                adapter = new CustomerAdapter(getActivity(), list);
-                                recyclerView.setAdapter(adapter);
-                            }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                            }
-                        });
+                                }
+                            });
+                    id.add(mUser.getKey());
                 }
+
             }
 
             @Override
@@ -94,6 +92,8 @@ public class OrdersFragment extends Fragment {
 
             }
         });
+
+
         return view;
     }
 

@@ -27,4 +27,5 @@
     <string name="address">Address</string>
     <string name="add_to_cart">ADD TO CART</string>
     <string name="order">ORDER NOW</string>
+    <string name="close_trasaction">Close Transaction</string>
 </resources>

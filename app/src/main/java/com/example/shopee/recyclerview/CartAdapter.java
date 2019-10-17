@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
+import com.example.shopee.customer.ProductsActivity;
 import com.example.shopee.customer.SellerFragment;
 import com.example.shopee.models.Cart;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -77,6 +79,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         SellerFragment.food_image_uri.add(uri);
         SellerFragment.seller_id.add(seller_id);
 
+        ProductsActivity.food_id.add(id);
+        ProductsActivity.food_name.add(name);
+        ProductsActivity.food_desc.add(desc);
+        ProductsActivity.food_price.add(price);
+        ProductsActivity.food_image_uri.add(uri);
+        ProductsActivity.seller_id.add(seller_id);
+
         FirebaseDatabase
                 .getInstance()
                 .getReference("User")
@@ -112,7 +121,20 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
-                                    Toast.makeText(context, "Removed from cart.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Removed from cart", Toast.LENGTH_SHORT).show();
+                                    SellerFragment.food_id.remove(id);
+                                    SellerFragment.food_name.remove(name);
+                                    SellerFragment.food_desc.remove(desc);
+                                    SellerFragment.food_price.remove(price);
+                                    SellerFragment.food_image_uri.remove(uri);
+                                    SellerFragment.seller_id.remove(seller_id);
+
+                                    ProductsActivity.food_id.remove(id);
+                                    ProductsActivity.food_name.remove(name);
+                                    ProductsActivity.food_desc.remove(desc);
+                                    ProductsActivity.food_price.remove(price);
+                                    ProductsActivity.food_image_uri.remove(uri);
+                                    ProductsActivity.seller_id.remove(seller_id);
                                 }
                                 else{
                                     Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -129,7 +151,20 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
-                                    Toast.makeText(context, "Removed from cart.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Removed from cart", Toast.LENGTH_SHORT).show();
+                                    SellerFragment.food_id.remove(id);
+                                    SellerFragment.food_name.remove(name);
+                                    SellerFragment.food_desc.remove(desc);
+                                    SellerFragment.food_price.remove(price);
+                                    SellerFragment.food_image_uri.remove(uri);
+                                    SellerFragment.seller_id.remove(seller_id);
+
+                                    ProductsActivity.food_id.remove(id);
+                                    ProductsActivity.food_name.remove(name);
+                                    ProductsActivity.food_desc.remove(desc);
+                                    ProductsActivity.food_price.remove(price);
+                                    ProductsActivity.food_image_uri.remove(uri);
+                                    ProductsActivity.seller_id.remove(seller_id);
                                 }
                                 else{
                                     Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();

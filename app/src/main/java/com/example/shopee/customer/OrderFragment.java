@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.example.shopee.R;
 import com.example.shopee.models.OrderDetail;
@@ -70,6 +71,7 @@ public class OrderFragment extends Fragment {
                             OrderHeader header = post.getValue(OrderHeader.class);
                             list.add(header);
                         }
+                        Toast.makeText(getActivity(), "" + list.size(), Toast.LENGTH_SHORT).show();
                         adapter = new OrderAdapter(getActivity(), list);
                         recyclerView.setAdapter(adapter);
                     }

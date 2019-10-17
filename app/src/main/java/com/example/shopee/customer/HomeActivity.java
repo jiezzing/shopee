@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.example.shopee.LoginActivity;
 import com.example.shopee.R;
+import com.example.shopee.models.User;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -109,7 +110,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         View header = navigationView.getHeaderView(0);
         user_image = header.findViewById(R.id.user_image);
         google_email = header.findViewById(R.id.google_email);
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if(account != null){
             gFirstname = account.getGivenName();
             gLastname = account.getFamilyName();
@@ -117,6 +118,33 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             uri = account.getPhotoUrl();
             Picasso.get().load(String.valueOf(uri)).into(user_image);
             google_email.setText(gEmail);
+
+
+            FirebaseDatabase.getInstance().getReference("User").child(account.getId()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.getChildrenCount() == 0){
+                        User user = new User(
+                                account.getId(),
+                                account.getGivenName(),
+                                account.getFamilyName(),
+                                account.getEmail(),
+                                "********",
+                                "Customer",
+                                "No address attached",
+                                "No phone # attached",
+                                account.getPhotoUrl().toString(),
+                                "active");
+                        FirebaseDatabase.getInstance().getReference("User")
+                                .child(account.getId()).setValue(user);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         }
         else{
             FirebaseDatabase

@@ -8,11 +8,9 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,6 +26,7 @@ import com.example.shopee.R;
 import com.example.shopee.models.Cart;
 import com.example.shopee.models.OrderDetail;
 import com.example.shopee.models.OrderHeader;
+import com.example.shopee.models.Seller;
 import com.example.shopee.models.User;
 import com.example.shopee.recyclerview.CartAdapter;
 import com.example.shopee.recyclerview.MerchantAdapter;
@@ -55,7 +54,6 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
     Dialog dialog;
     FloatingActionButton cart_btn;
     LinearLayout info;
-    Cart cart;
 
     String google_id;
 
@@ -93,7 +91,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getActivity());
+        final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getActivity());
         if(account != null){
             google_id = account.getId();
         }
@@ -154,7 +152,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                 info.setVisibility(View.VISIBLE);
                                 for(DataSnapshot post : dataSnapshot.getChildren()){
                                     info.setVisibility(View.GONE);
-                                    cart = post.getValue(Cart.class);
+                                    Cart cart = post.getValue(Cart.class);
                                     total += Double.parseDouble(cart.getPrice());
 
 
@@ -172,133 +170,24 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                 }
                 else{
                     FirebaseDatabase
-                        .getInstance()
-                        .getReference("Cart")
-                        .child(google_id)
-                        .addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                cartList.clear();
-                                info.setVisibility(View.VISIBLE);
-                                for(DataSnapshot post : dataSnapshot.getChildren()){
-                                    info.setVisibility(View.GONE);
-                                    Cart cart = post.getValue(Cart.class);
-                                    total += Double.parseDouble(cart.getPrice());
-//                                    food_id.add(cart.getId());
-//                                    food_name.add(cart.getName());
-//                                    food_desc.add(cart.getDescription());
-//                                    food_price.add(cart.getPrice());
-//                                    food_image_uri.add(cart.getImage_uri());
-//                                    seller_id.add(cart.getSeller_id());
-                                    cartList.add(cart);
-                                }
-                                adapter = new CartAdapter(getActivity(), cartList);
-                                recyclerView.setAdapter(adapter);
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                            }
-                        });
-                }
-
-
-                order_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                    if(FirebaseAuth.getInstance().getCurrentUser() != null){
-                        FirebaseDatabase
                             .getInstance()
-                            .getReference("OrderHeader")
-                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    order_no = (int)(dataSnapshot.getChildrenCount());
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                }
-                            });
-
-                        OrderHeader orderHeader = new OrderHeader(FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                            String.valueOf(order_no + 1), String.valueOf(total), "Pending");
-                        FirebaseDatabase
-                            .getInstance()
-                            .getReference("OrderHeader")
-                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                            .child(String.valueOf(order_no + 1))
-                            .setValue(orderHeader)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()){
-                                    for (int i = 0; i < seller_id.size(); i++){
-                                        detail = new OrderDetail(food_id.get(i),
-                                            food_name.get(i),
-                                            food_desc.get(i),
-                                            food_price.get(i),
-                                            food_image_uri.get(i),
-                                            seller_id.get(i),
-                                            "Pending");
-                                        FirebaseDatabase
-                                            .getInstance()
-                                            .getReference("OrderDetail")
-                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                            .child(String.valueOf(order_no))
-                                            .child(food_id.get(i))
-                                            .setValue(detail)
-                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-                                                    if(task.isSuccessful()){
-                                                        Toast.makeText(getActivity(), "Your order is now on process.", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                    else{
-                                                        Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
-                                                    }
-                                                }
-                                            });
-
-
-                                            String mKey = FirebaseDatabase.getInstance().getReference("Seller").push().getKey();
-
-                                            FirebaseDatabase
-                                                    .getInstance()
-                                                    .getReference("Seller")
-                                                    .child(seller_id.get(i))
-                                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                    .child(mKey)
-                                                    .setValue(detail);
-
-                                            FirebaseDatabase
-                                                    .getInstance()
-                                                    .getReference("Cart")
-                                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                                                    .child(food_id.get(i))
-                                                    .removeValue();
-                                            Log.d("Food: ", "" + food_id.size());
-                                            Log.d("Seller: ", "" + seller_id.size());
-
-                                    }
-                                    food_id.clear();
-                                    seller_id.clear();
-                                }
-                                }
-                            });
-                    }
-                    else{
-                        FirebaseDatabase
-                            .getInstance()
-                            .getReference("OrderHeader")
+                            .getReference("Cart")
                             .child(google_id)
                             .addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    order_no = (int)(dataSnapshot.getChildrenCount());
+                                    cartList.clear();
+                                    info.setVisibility(View.VISIBLE);
+                                    for(DataSnapshot post : dataSnapshot.getChildren()){
+                                        info.setVisibility(View.GONE);
+                                        Cart cart = post.getValue(Cart.class);
+                                        total += Double.parseDouble(cart.getPrice());
+
+
+                                        cartList.add(cart);
+                                    }
+                                    adapter = new CartAdapter(getActivity(), cartList);
+                                    recyclerView.setAdapter(adapter);
                                 }
 
                                 @Override
@@ -306,58 +195,200 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
 
                                 }
                             });
+                }
 
-                        OrderHeader orderHeader = new OrderHeader(google_id,
-                                String.valueOf(order_no + 1), String.valueOf(total), "Pending");
-                        FirebaseDatabase
-                                .getInstance()
-                                .getReference("OrderHeader")
-                                .child(google_id)
-                                .child(String.valueOf(order_no + 1))
-                                .setValue(orderHeader)
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()){
-                                            for (int i = 0; i < food_id.size(); i++){
-                                                OrderDetail detail = new OrderDetail(food_id.get(i),
-                                                        food_name.get(i),
-                                                        food_desc.get(i),
-                                                        food_price.get(i),
-                                                        food_image_uri.get(i),
-                                                        seller_id.get(i),
-                                                        "Pending");
-                                                FirebaseDatabase
-                                                        .getInstance()
-                                                        .getReference("OrderDetail")
-                                                        .child(google_id)
-                                                        .child(String.valueOf(order_no))
-                                                        .child(food_id.get(i))
-                                                        .setValue(detail)
-                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                            @Override
-                                                            public void onComplete(@NonNull Task<Void> task) {
-                                                                if(task.isSuccessful()){
-                                                                    Toast.makeText(getActivity(), "Your order is now on process.", Toast.LENGTH_SHORT).show();
-                                                                }
-                                                                else{
-                                                                    Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
-                                                                }
-                                                            }
-                                                        });
 
-                                                FirebaseDatabase
-                                                        .getInstance()
-                                                        .getReference("Cart")
-                                                        .child(google_id)
-                                                        .child(food_id.get(i))
-                                                        .removeValue();
+            order_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                    if(cartList.size() != 0){
+                        if(FirebaseAuth.getInstance().getCurrentUser() != null){
+                            FirebaseDatabase
+                                    .getInstance()
+                                    .getReference("OrderHeader")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            order_no = (int)(dataSnapshot.getChildrenCount());
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                        }
+                                    });
+
+                            OrderHeader orderHeader = new OrderHeader(FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                                    String.valueOf(order_no + 1), String.valueOf(total), "Pending");
+                            FirebaseDatabase
+                                    .getInstance()
+                                    .getReference("OrderHeader")
+                                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                    .child(String.valueOf(order_no + 1))
+                                    .setValue(orderHeader)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if(task.isSuccessful()){
+                                                for (int i = 0; i < seller_id.size(); i++){
+                                                    detail = new OrderDetail(food_id.get(i),
+                                                            food_name.get(i),
+                                                            food_desc.get(i),
+                                                            food_price.get(i),
+                                                            food_image_uri.get(i),
+                                                            seller_id.get(i),
+                                                            "Pending");
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("OrderDetail")
+                                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                            .child(String.valueOf(order_no))
+                                                            .child(food_id.get(i))
+                                                            .setValue(detail)
+                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    if(task.isSuccessful()){
+                                                                        Toast.makeText(getActivity(), "Your order is now on process. :)", Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                    else{
+                                                                        Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                }
+                                                            });
+
+
+                                                    String mKey = FirebaseDatabase.getInstance().getReference("Seller").push().getKey();
+                                                    Seller seller = new Seller(
+                                                            mKey,
+                                                            String.valueOf(order_no),
+                                                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                                                            food_id.get(i),
+                                                            food_name.get(i),
+                                                            food_desc.get(i),
+                                                            food_price.get(i),
+                                                            food_image_uri.get(i),
+                                                            seller_id.get(i),
+                                                            "Pending"
+                                                    );
+
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("Seller")
+                                                            .child(seller_id.get(i))
+                                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                            .child(String.valueOf(mKey))
+                                                            .setValue(seller);
+
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("Cart")
+                                                            .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                            .child(food_id.get(i))
+                                                            .removeValue();
+                                                }
+                                                food_id.clear();
+                                                seller_id.clear();
                                             }
                                         }
-                                    }
-                                });
-                    }
+                                    });
+                        }
+                        else{
+                            FirebaseDatabase
+                                    .getInstance()
+                                    .getReference("OrderHeader")
+                                    .child(google_id)
+                                    .addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            order_no = (int)(dataSnapshot.getChildrenCount());
+                                        }
 
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                        }
+                                    });
+
+                            OrderHeader orderHeader = new OrderHeader(google_id,
+                                    String.valueOf(order_no + 1), String.valueOf(total), "Pending");
+                            FirebaseDatabase
+                                    .getInstance()
+                                    .getReference("OrderHeader")
+                                    .child(google_id)
+                                    .child(String.valueOf(order_no + 1))
+                                    .setValue(orderHeader)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if(task.isSuccessful()){
+                                                for (int i = 0; i < seller_id.size(); i++){
+                                                    detail = new OrderDetail(food_id.get(i),
+                                                            food_name.get(i),
+                                                            food_desc.get(i),
+                                                            food_price.get(i),
+                                                            food_image_uri.get(i),
+                                                            seller_id.get(i),
+                                                            "Pending");
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("OrderDetail")
+                                                            .child(google_id)
+                                                            .child(String.valueOf(order_no))
+                                                            .child(food_id.get(i))
+                                                            .setValue(detail)
+                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    if(task.isSuccessful()){
+                                                                        Toast.makeText(getActivity(), "Your order is now on process. :(", Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                    else{
+                                                                        Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                }
+                                                            });
+
+
+                                                    String mKey = FirebaseDatabase.getInstance().getReference("Seller").push().getKey();
+                                                    Seller seller = new Seller(
+                                                            mKey,
+                                                            String.valueOf(order_no),
+                                                            account.getId(),
+                                                            food_id.get(i),
+                                                            food_name.get(i),
+                                                            food_desc.get(i),
+                                                            food_price.get(i),
+                                                            food_image_uri.get(i),
+                                                            seller_id.get(i),
+                                                            "Pending"
+                                                    );
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("Seller")
+                                                            .child(seller_id.get(i))
+                                                            .child(google_id)
+                                                            .child(mKey)
+                                                            .setValue(seller);
+
+                                                    FirebaseDatabase
+                                                            .getInstance()
+                                                            .getReference("Cart")
+                                                            .child(google_id)
+                                                            .child(food_id.get(i))
+                                                            .removeValue();
+                                                }
+                                                food_id.clear();
+                                                seller_id.clear();
+                                            }
+                                        }
+                                    });
+                        }
+                    }
+                    else{
+                        Toast.makeText(getActivity(), "Please select products.", Toast.LENGTH_SHORT).show();
+                    }
                     }
                 });
                 dialog.show();
