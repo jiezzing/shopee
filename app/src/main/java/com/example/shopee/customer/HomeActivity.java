@@ -124,6 +124,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     if(dataSnapshot.getChildrenCount() == 0){
+                        String url;
+                        if(account.getPhotoUrl() != null){
+                            url = account.getPhotoUrl().toString();
+                        }
+                        else{
+                            url = "No image attached";
+                        }
                         User user = new User(
                                 account.getId(),
                                 account.getGivenName(),
@@ -133,7 +140,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                                 "Customer",
                                 "No address attached",
                                 "No phone # attached",
-                                account.getPhotoUrl().toString(),
+                                url,
                                 "active");
                         FirebaseDatabase.getInstance().getReference("User")
                                 .child(account.getId()).setValue(user);

@@ -174,6 +174,7 @@ public class ProductsActivity extends AppCompatActivity {
 
                                     cartList.add(cart);
                                 }
+                                mTotal.setText("TOTAL: " + total);
                                 adapter = new CartAdapter(ProductsActivity.this, cartList);
                                 recyclerView.setAdapter(adapter);
                             }
@@ -240,6 +241,7 @@ public class ProductsActivity extends AppCompatActivity {
                                                                     public void onComplete(@NonNull Task<Void> task) {
                                                                         if(task.isSuccessful()){
                                                                             Toast.makeText(ProductsActivity.this, "Your order is now on process.", Toast.LENGTH_SHORT).show();
+                                                                            mTotal.setText("TOTAL: 0.00");
                                                                         }
                                                                         else{
                                                                             Toast.makeText(ProductsActivity.this, "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -336,6 +338,7 @@ public class ProductsActivity extends AppCompatActivity {
                                                                     public void onComplete(@NonNull Task<Void> task) {
                                                                         if(task.isSuccessful()){
                                                                             Toast.makeText(ProductsActivity.this, "Your order is now on process.", Toast.LENGTH_SHORT).show();
+                                                                            mTotal.setText("TOTAL: 0.00");
                                                                         }
                                                                         else{
                                                                             Toast.makeText(ProductsActivity.this, "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();

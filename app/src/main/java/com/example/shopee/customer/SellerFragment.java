@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
@@ -131,6 +132,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
             CartAdapter adapter;
             List<Cart> cartList;
             Button order_btn;
+            TextView mTotal;
             LinearLayout info;
             @Override
             public void onClick(View v) {
@@ -140,6 +142,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                 recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
                 cartList = new ArrayList<>();
                 order_btn = dialog.findViewById(R.id.order_btn);
+                mTotal = dialog.findViewById(R.id.total);
                 info = dialog.findViewById(R.id.info);
 
                 if(FirebaseAuth.getInstance().getCurrentUser() != null){
@@ -155,11 +158,12 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                 for(DataSnapshot post : dataSnapshot.getChildren()){
                                     info.setVisibility(View.GONE);
                                     Cart cart = post.getValue(Cart.class);
-                                    total += Double.parseDouble(cart.getPrice());
+                                    total += Double.parseDouble(cart.getSubtotal());
 
 
                                     cartList.add(cart);
                                 }
+                                mTotal.setText("TOTAL: " + total);
                                 adapter = new CartAdapter(getActivity(), cartList);
                                 recyclerView.setAdapter(adapter);
                             }
@@ -183,11 +187,12 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                     for(DataSnapshot post : dataSnapshot.getChildren()){
                                         info.setVisibility(View.GONE);
                                         Cart cart = post.getValue(Cart.class);
-                                        total += Double.parseDouble(cart.getPrice());
+                                        total += Double.parseDouble(cart.getSubtotal());
 
 
                                         cartList.add(cart);
                                     }
+                                    mTotal.setText("TOTAL: " + total);
                                     adapter = new CartAdapter(getActivity(), cartList);
                                     recyclerView.setAdapter(adapter);
                                 }
@@ -255,6 +260,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                                 public void onComplete(@NonNull Task<Void> task) {
                                                                     if(task.isSuccessful()){
                                                                         Toast.makeText(getActivity(), "Your order is now on process. :)", Toast.LENGTH_SHORT).show();
+                                                                        mTotal.setText("TOTAL: 0.00");
                                                                     }
                                                                     else{
                                                                         Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -351,6 +357,7 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                                 public void onComplete(@NonNull Task<Void> task) {
                                                                     if(task.isSuccessful()){
                                                                         Toast.makeText(getActivity(), "Your order is now on process. :(", Toast.LENGTH_SHORT).show();
+                                                                        mTotal.setText("TOTAL: 0.00");
                                                                     }
                                                                     else{
                                                                         Toast.makeText(getActivity(), "An error occurred: " + task.getException(), Toast.LENGTH_SHORT).show();

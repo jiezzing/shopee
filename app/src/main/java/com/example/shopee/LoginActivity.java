@@ -163,8 +163,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     protected void onStart() {
         super.onStart();
-
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if(auth.getCurrentUser() != null){
             progressDialog.show();
             user.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
@@ -191,13 +189,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 }
             });
         }
-        else if(account != null){
+        else {
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+            if(account != null){
                 progressDialog.show();
                 startActivity(new Intent(LoginActivity.this, com.example.shopee.customer.HomeActivity.class));
                 finish();
-        }
-        else{
-            progressDialog.dismiss();
+            }
         }
     }
 
@@ -226,6 +224,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             startActivity(intent);
             finish();
         }
+        else
+            Log.d("Error code: ", "" + result.getStatus());
     }
 
     @Override
