@@ -11,11 +11,13 @@ public class Seller {
     private String image_uri;
     private String seller_id;
     private String status;
+    private String qty;
+    private String subtotal;
 
     public Seller() {
     }
 
-    public Seller(String seller_no, String order_no, String customer_no, String id, String name, String description, String price, String image_uri, String seller_id, String status) {
+    public Seller(String seller_no, String order_no, String customer_no, String id, String name, String description, String price, String image_uri, String seller_id, String status, String qty, String subtotal) {
         this.seller_no = seller_no;
         this.order_no = order_no;
         this.customer_no = customer_no;
@@ -26,6 +28,8 @@ public class Seller {
         this.image_uri = image_uri;
         this.seller_id = seller_id;
         this.status = status;
+        this.qty = qty;
+        this.subtotal = subtotal;
     }
 
     public String getSeller_no() {
@@ -106,5 +110,21 @@ public class Seller {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getQty() {
+        return qty;
+    }
+
+    public void setQty(String qty) {
+        this.qty = qty;
+    }
+
+    public String getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(String subtotal) {
+        this.subtotal = subtotal;
     }
 }

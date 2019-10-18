@@ -10,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,10 +55,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
     Boolean selected = false;
     Uri uri;
 
-    EditText mName, mDesc, mPrice;
+    EditText mName, mDesc, mPrice, mQty;
     TextView mProduct;
     ImageView add_item_photo;
     Button update_btn;
+    String itemId;
 
     public ProductAdapter(Context context, List<Product> list) {
         this.context = context;
@@ -78,6 +80,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         mName = bottomSheetView.findViewById(R.id.product_name);
         mDesc = bottomSheetView.findViewById(R.id.product_desc);
         mPrice = bottomSheetView.findViewById(R.id.product_price);
+        mQty = bottomSheetView.findViewById(R.id.product_stock);
         update_btn = bottomSheetView.findViewById(R.id.add_product_btn);
         mProduct = bottomSheetView.findViewById(R.id.product);
         bottomSheetDialog.setContentView(bottomSheetView);
@@ -92,7 +95,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         final String desc =  product.getDescription();
         final String price =  product.getPrice();
         final String uri =  product.getImage_uri();
-        final String id =  product.getId();
+        final String item_id =  product.getId();
         final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setCancelable(false);
         dialog.setTitle("Confirmation");
@@ -101,6 +104,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         productViewHolder.name.setText(name);
         productViewHolder.desc.setText(desc);
         productViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
+        productViewHolder.qty.setText(product.getQty());
         Picasso.get().load(uri).into(productViewHolder.image);
 
         productViewHolder.delete.setOnClickListener(new View.OnClickListener() {
@@ -110,7 +114,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
                 dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        productReference.child(auth.getCurrentUser().getUid()).child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        productReference.child(auth.getCurrentUser().getUid()).child(item_id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
@@ -136,13 +140,15 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         productViewHolder.edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                productReference.child(auth.getCurrentUser().getUid()).child(id).addValueEventListener(new ValueEventListener() {
+                productReference.child(auth.getCurrentUser().getUid()).child(item_id).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        itemId = item_id;
                         mProduct.setText("PRODUCT DETAILS");
                         mName.setText(dataSnapshot.child("name").getValue().toString());
                         mDesc.setText(dataSnapshot.child("description").getValue().toString());
                         mPrice.setText(dataSnapshot.child("price").getValue().toString());
+                        mQty.setText(dataSnapshot.child("qty").getValue().toString());
                         update_btn.setText("UPDATE PRODUCT");
                         Picasso.get().load(dataSnapshot.child("image_uri").getValue().toString()).into(add_item_photo);
                     }
@@ -159,21 +165,40 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
         update_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            HashMap<String, Object> result = new HashMap<>();
-            result.put("name", mName.getText().toString());
-            result.put("description", mDesc.getText().toString());
-            result.put("price", mPrice.getText().toString());
-            productReference.child(auth.getCurrentUser().getUid()).child(id).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
+            if(TextUtils.isEmpty(mName.getText())){
+                mName.setError("Required");
+                mName.requestFocus();
+            }
+            else if(TextUtils.isEmpty(mDesc.getText())){
+                mDesc.setError("Required");
+                mDesc.requestFocus();
+            }
+            else if(TextUtils.isEmpty(mPrice.getText())){
+                mPrice.setError("Required");
+                mPrice.requestFocus();
+            }
+            else if(TextUtils.isEmpty(mQty.getText())){
+                mQty.setError("Required");
+                mQty.requestFocus();
+            }
+            else{
+                HashMap<String, Object> result = new HashMap<>();
+                result.put("name", mName.getText().toString());
+                result.put("description", mDesc.getText().toString());
+                result.put("price", mPrice.getText().toString());
+                result.put("qty", mQty.getText().toString());
+                productReference.child(auth.getCurrentUser().getUid()).child(itemId).updateChildren(result).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
                     if(task.isSuccessful()){
                         Toast.makeText(context, "Product successfully updated.", Toast.LENGTH_SHORT).show();
                     }
                     else{
                         Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
                     }
-                }
-            });
+                    }
+                });
+            }
             }
         });
 
@@ -236,7 +261,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductViewHolder> impl
 }
 
 class ProductViewHolder extends RecyclerView.ViewHolder{
-    public TextView name, desc, price, edit, delete;
+    public TextView name, desc, price, edit, delete, qty;
     public ImageView image;
     public ProductViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -246,5 +271,6 @@ class ProductViewHolder extends RecyclerView.ViewHolder{
         image = itemView.findViewById(R.id.image);
         edit = itemView.findViewById(R.id.edit);
         delete = itemView.findViewById(R.id.delete);
+        qty = itemView.findViewById(R.id.qty);
     }
 }

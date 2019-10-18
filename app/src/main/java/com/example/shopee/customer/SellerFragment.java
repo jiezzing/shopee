@@ -68,6 +68,8 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
     public static ArrayList<String> food_price = new ArrayList<>();
     public static ArrayList<String> food_image_uri = new ArrayList<>();
     public static ArrayList<String> seller_id = new ArrayList<>();
+    public static ArrayList<String> food_qty = new ArrayList<>();
+    public static ArrayList<String> food_subtotal = new ArrayList<>();
     OrderDetail detail;
 
     @Override
@@ -238,6 +240,8 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                             food_price.get(i),
                                                             food_image_uri.get(i),
                                                             seller_id.get(i),
+                                                            food_qty.get(i),
+                                                            food_subtotal.get(i),
                                                             "Pending");
                                                     FirebaseDatabase
                                                             .getInstance()
@@ -270,7 +274,9 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                             food_price.get(i),
                                                             food_image_uri.get(i),
                                                             seller_id.get(i),
-                                                            "Pending"
+                                                            "Pending",
+                                                            food_qty.get(i),
+                                                            food_subtotal.get(i)
                                                     );
 
                                                     FirebaseDatabase
@@ -330,7 +336,9 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                             food_price.get(i),
                                                             food_image_uri.get(i),
                                                             seller_id.get(i),
-                                                            "Pending");
+                                                            "Pending",
+                                                            food_qty.get(i),
+                                                            food_subtotal.get(i));
                                                     FirebaseDatabase
                                                             .getInstance()
                                                             .getReference("OrderDetail")
@@ -362,7 +370,9 @@ public class SellerFragment extends Fragment implements SearchView.OnQueryTextLi
                                                             food_price.get(i),
                                                             food_image_uri.get(i),
                                                             seller_id.get(i),
-                                                            "Pending"
+                                                            "Pending",
+                                                            food_qty.get(i),
+                                                            food_subtotal.get(i)
                                                     );
                                                     FirebaseDatabase
                                                             .getInstance()

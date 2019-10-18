@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shopee.R;
@@ -56,7 +57,7 @@ public class ProductsActivity extends AppCompatActivity {
     FirebaseAuth auth;
     DatabaseReference productReference;
     double total = 0.0;
-    int order_no = 0;
+    int order_no;
     String google_id;
     OrderDetail detail;
 
@@ -66,6 +67,8 @@ public class ProductsActivity extends AppCompatActivity {
     public static ArrayList<String> food_price = new ArrayList<>();
     public static ArrayList<String> food_image_uri = new ArrayList<>();
     public static ArrayList<String> seller_id = new ArrayList<>();
+    public static ArrayList<String> food_qty = new ArrayList<>();
+    public static ArrayList<String> food_subtotal = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,8 +95,8 @@ public class ProductsActivity extends AppCompatActivity {
         productReference.child(id).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
                 info.setVisibility(View.VISIBLE);
+                list.clear();
                 for(DataSnapshot post : dataSnapshot.getChildren()){
                     info.setVisibility(View.GONE);
                     Product product = post.getValue(Product.class);
@@ -114,6 +117,7 @@ public class ProductsActivity extends AppCompatActivity {
             CartAdapter adapter;
             List<Cart> cartList;
             Button order_btn;
+            TextView mTotal;
             LinearLayout info;
             @Override
             public void onClick(View v) {
@@ -123,6 +127,7 @@ public class ProductsActivity extends AppCompatActivity {
                 recyclerView.setLayoutManager(new LinearLayoutManager(ProductsActivity.this));
                 cartList = new ArrayList<>();
                 order_btn = dialog.findViewById(R.id.order_btn);
+                mTotal = dialog.findViewById(R.id.total);
                 info = dialog.findViewById(R.id.info);
                 if(FirebaseAuth.getInstance().getCurrentUser() != null){
                     FirebaseDatabase
@@ -137,9 +142,10 @@ public class ProductsActivity extends AppCompatActivity {
                                     for(DataSnapshot post : dataSnapshot.getChildren()){
                                         info.setVisibility(View.GONE);
                                         Cart cart = post.getValue(Cart.class);
-                                        total += Double.parseDouble(cart.getPrice());
+                                        total += Double.parseDouble(cart.getSubtotal());
                                         cartList.add(cart);
                                     }
+                                    mTotal.setText("TOTAL: " + total);
                                     adapter = new CartAdapter(ProductsActivity.this, cartList);
                                     recyclerView.setAdapter(adapter);
                                 }
@@ -152,31 +158,31 @@ public class ProductsActivity extends AppCompatActivity {
                 }
                 else{
                     FirebaseDatabase
-                            .getInstance()
-                            .getReference("Cart")
-                            .child(google_id)
-                            .addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                    cartList.clear();
-                                    info.setVisibility(View.VISIBLE);
-                                    for(DataSnapshot post : dataSnapshot.getChildren()){
-                                        info.setVisibility(View.GONE);
-                                        Cart cart = post.getValue(Cart.class);
-                                        total += Double.parseDouble(cart.getPrice());
+                        .getInstance()
+                        .getReference("Cart")
+                        .child(google_id)
+                        .addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                cartList.clear();
+                                info.setVisibility(View.VISIBLE);
+                                for(DataSnapshot post : dataSnapshot.getChildren()){
+                                    info.setVisibility(View.GONE);
+                                    Cart cart = post.getValue(Cart.class);
+                                    total += Double.parseDouble(cart.getSubtotal());
 
 
-                                        cartList.add(cart);
-                                    }
-                                    adapter = new CartAdapter(ProductsActivity.this, cartList);
-                                    recyclerView.setAdapter(adapter);
+                                    cartList.add(cart);
                                 }
+                                adapter = new CartAdapter(ProductsActivity.this, cartList);
+                                recyclerView.setAdapter(adapter);
+                            }
 
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                }
-                            });
+                            }
+                        });
                 }
                 order_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -191,6 +197,7 @@ public class ProductsActivity extends AppCompatActivity {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                                 order_no = (int)(dataSnapshot.getChildrenCount());
+                                                Log.d("Order No: ", "" + order_no);
                                             }
 
                                             @Override
@@ -218,7 +225,9 @@ public class ProductsActivity extends AppCompatActivity {
                                                                 food_price.get(i),
                                                                 food_image_uri.get(i),
                                                                 seller_id.get(i),
-                                                                "Pending");
+                                                                "Pending",
+                                                                food_qty.get(i),
+                                                                food_subtotal.get(i));
                                                         FirebaseDatabase
                                                                 .getInstance()
                                                                 .getReference("OrderDetail")
@@ -250,7 +259,9 @@ public class ProductsActivity extends AppCompatActivity {
                                                                 food_price.get(i),
                                                                 food_image_uri.get(i),
                                                                 seller_id.get(i),
-                                                                "Pending"
+                                                                "Pending",
+                                                                food_qty.get(i),
+                                                                food_subtotal.get(i)
                                                         );
                                                         FirebaseDatabase
                                                                 .getInstance()
@@ -292,6 +303,7 @@ public class ProductsActivity extends AppCompatActivity {
 
                                 OrderHeader orderHeader = new OrderHeader(google_id,
                                         String.valueOf(order_no + 1), String.valueOf(total), "Pending");
+
                                 FirebaseDatabase
                                         .getInstance()
                                         .getReference("OrderHeader")
@@ -309,7 +321,9 @@ public class ProductsActivity extends AppCompatActivity {
                                                                 food_price.get(i),
                                                                 food_image_uri.get(i),
                                                                 seller_id.get(i),
-                                                                "Pending");
+                                                                "Pending",
+                                                                food_qty.get(i),
+                                                                food_subtotal.get(i));
                                                         FirebaseDatabase
                                                                 .getInstance()
                                                                 .getReference("OrderDetail")
@@ -334,14 +348,16 @@ public class ProductsActivity extends AppCompatActivity {
                                                         Seller seller = new Seller(
                                                                 mKey,
                                                                 String.valueOf(order_no),
-                                                                FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                                                                google_id,
                                                                 food_id.get(i),
                                                                 food_name.get(i),
                                                                 food_desc.get(i),
                                                                 food_price.get(i),
                                                                 food_image_uri.get(i),
                                                                 seller_id.get(i),
-                                                                "Pending"
+                                                                "Pending",
+                                                                food_qty.get(i),
+                                                                food_subtotal.get(i)
                                                         );
                                                         FirebaseDatabase
                                                                 .getInstance()

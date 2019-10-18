@@ -8,11 +8,13 @@ public class OrderDetail {
     private String image_uri;
     private String seller_id;
     private String status;
+    private String qty;
+    private String subtotal;
 
     public OrderDetail() {
     }
 
-    public OrderDetail(String id, String name, String description, String price, String image_uri, String seller_id, String status) {
+    public OrderDetail(String id, String name, String description, String price, String image_uri, String seller_id, String status, String qty, String subtotal) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -20,61 +22,43 @@ public class OrderDetail {
         this.image_uri = image_uri;
         this.seller_id = seller_id;
         this.status = status;
+        this.qty = qty;
+        this.subtotal = subtotal;
     }
 
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getPrice() {
         return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
     }
 
     public String getImage_uri() {
         return image_uri;
     }
 
-    public void setImage_uri(String image_uri) {
-        this.image_uri = image_uri;
-    }
-
     public String getSeller_id() {
         return seller_id;
-    }
-
-    public void setSeller_id(String seller_id) {
-        this.seller_id = seller_id;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public String getQty() {
+        return qty;
+    }
+
+    public String getSubtotal() {
+        return subtotal;
     }
 }

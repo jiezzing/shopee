@@ -112,12 +112,13 @@ public class ProductsFragment extends Fragment implements SearchView.OnQueryText
         name = bottomSheetView.findViewById(R.id.product_name);
         desc = bottomSheetView.findViewById(R.id.product_desc);
         price = bottomSheetView.findViewById(R.id.product_price);
+        qty = bottomSheetView.findViewById(R.id.product_stock);
 
         productReference.child(auth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                list.clear();
                 info.setVisibility(View.VISIBLE);
+                list.clear();
                 for(DataSnapshot post : dataSnapshot.getChildren()){
                     info.setVisibility(View.GONE);
                     Product product = post.getValue(Product.class);
@@ -168,6 +169,10 @@ public class ProductsFragment extends Fragment implements SearchView.OnQueryText
                     price.setError("Required");
                     price.requestFocus();
                 }
+                else if(TextUtils.isEmpty(qty.getText())){
+                    qty.setError("Required");
+                    qty.requestFocus();
+                }
                 else if(uri == null){
                     Toast.makeText(getActivity(), "Plase select an image.", Toast.LENGTH_SHORT).show();
                 }
@@ -196,9 +201,10 @@ public class ProductsFragment extends Fragment implements SearchView.OnQueryText
                                     String prod_name = name.getText().toString();
                                     String prod_desc = desc.getText().toString();
                                     String prod_price = price.getText().toString();
+                                    String prod_qty = qty.getText().toString();
                                     String image_uri = uri.toString();
                                     Product product;
-                                    product = new Product(id, prod_name, prod_desc, prod_price, image_uri, auth.getCurrentUser().getUid(), "available");
+                                    product = new Product(id, prod_name, prod_desc, prod_price, prod_qty, image_uri, auth.getCurrentUser().getUid(), "available");
                                     productReference.child(userId).child(id).setValue(product).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {

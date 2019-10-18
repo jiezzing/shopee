@@ -47,6 +47,8 @@ public class OrderedProductAdapter extends RecyclerView.Adapter<OrderedProductVi
         orderedProductViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
         orderedProductViewHolder.desc.setText(detail.getDescription());
         orderedProductViewHolder.status.setText(detail.getStatus());
+        orderedProductViewHolder.qty.setText(detail.getQty());
+        orderedProductViewHolder.subtotal.setText(detail.getSubtotal());
         Picasso.get().load(detail.getImage_uri()).into(orderedProductViewHolder.image);
         FirebaseDatabase.getInstance().getReference("User").child(detail.getSeller_id()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -68,7 +70,7 @@ public class OrderedProductAdapter extends RecyclerView.Adapter<OrderedProductVi
 }
 
 class OrderedProductViewHolder extends RecyclerView.ViewHolder{
-    public TextView name, price, desc, status, seller_name;
+    public TextView name, price, desc, status, seller_name, qty, subtotal;
     public ImageView image;
     public OrderedProductViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -78,5 +80,7 @@ class OrderedProductViewHolder extends RecyclerView.ViewHolder{
         status = itemView.findViewById(R.id.status);
         image = itemView.findViewById(R.id.image);
         seller_name = itemView.findViewById(R.id.seller_name);
+        qty = itemView.findViewById(R.id.qty);
+        subtotal = itemView.findViewById(R.id.subtotal);
     }
 }

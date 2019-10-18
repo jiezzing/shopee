@@ -30,6 +30,7 @@ import com.squareup.picasso.Picasso;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 
 public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
@@ -62,15 +63,20 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         final String uri =  cart.getImage_uri();
         final String id =  cart.getId();
         final String seller_id =  cart.getSeller_id();
+        final String food_qty =  cart.getQty();
+        final String food_subtotal =  cart.getSubtotal();
         final AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setCancelable(false);
         dialog.setTitle("Confirmation");
         BigDecimal currency = new BigDecimal(price);
+        BigDecimal subtotal = new BigDecimal(cart.getSubtotal());
 
         cartViewHolder.name.setText(name);
         cartViewHolder.desc.setText(desc);
         cartViewHolder.price.setText(String.valueOf(currency.setScale(2, RoundingMode.CEILING)));
         Picasso.get().load(uri).into(cartViewHolder.image);
+        cartViewHolder.qty.setText(cart.getQty());
+        cartViewHolder.subtotal.setText(String.valueOf(subtotal.setScale(2, RoundingMode.CEILING)));
 
         SellerFragment.food_id.add(id);
         SellerFragment.food_name.add(name);
@@ -78,6 +84,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         SellerFragment.food_price.add(price);
         SellerFragment.food_image_uri.add(uri);
         SellerFragment.seller_id.add(seller_id);
+        SellerFragment.food_qty.add(food_qty);
+        SellerFragment.food_subtotal.add(food_subtotal);
 
         ProductsActivity.food_id.add(id);
         ProductsActivity.food_name.add(name);
@@ -85,6 +93,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         ProductsActivity.food_price.add(price);
         ProductsActivity.food_image_uri.add(uri);
         ProductsActivity.seller_id.add(seller_id);
+        ProductsActivity.food_qty.add(food_qty);
+        ProductsActivity.food_subtotal.add(food_subtotal);
 
         FirebaseDatabase
                 .getInstance()
@@ -96,7 +106,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                         String firstname = dataSnapshot.child("firstname").getValue().toString();
                         String lastname = dataSnapshot.child("lastname").getValue().toString();
                         String name = firstname + " " + lastname;
-                        cartViewHolder.seller_name.setText(name);
+                        cartViewHolder.seller_name.setText("Seller: " + name);
                     }
 
                     @Override
@@ -108,7 +118,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         cartViewHolder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.setMessage("Do you want to delete " + name + "?");
+                dialog.setMessage("Do you want to remove " + name + " from cart?");
                 dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -122,12 +132,37 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
                                     Toast.makeText(context, "Removed from cart", Toast.LENGTH_SHORT).show();
+                                    FirebaseDatabase.getInstance().getReference("Products")
+                                            .child(cart.getSeller_id())
+                                            .child(cart.getId())
+                                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                                    final int currentQty = Integer.parseInt(dataSnapshot.child("qty").getValue(String.class));
+                                                    final int mQty = Integer.parseInt(cart.getQty());
+                                                    int newTotal = currentQty + mQty;
+
+                                                    HashMap<String, Object> result = new HashMap<>();
+                                                    result.put("qty", String.valueOf(newTotal));
+                                                    FirebaseDatabase.getInstance().getReference("Products")
+                                                            .child(cart.getSeller_id())
+                                                            .child(cart.getId())
+                                                            .updateChildren(result);
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                                }
+                                            });
                                     SellerFragment.food_id.remove(id);
                                     SellerFragment.food_name.remove(name);
                                     SellerFragment.food_desc.remove(desc);
                                     SellerFragment.food_price.remove(price);
                                     SellerFragment.food_image_uri.remove(uri);
                                     SellerFragment.seller_id.remove(seller_id);
+                                    SellerFragment.food_qty.remove(food_qty);
+                                    SellerFragment.food_subtotal.remove(food_subtotal);
 
                                     ProductsActivity.food_id.remove(id);
                                     ProductsActivity.food_name.remove(name);
@@ -135,6 +170,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                                     ProductsActivity.food_price.remove(price);
                                     ProductsActivity.food_image_uri.remove(uri);
                                     ProductsActivity.seller_id.remove(seller_id);
+                                    ProductsActivity.food_qty.remove(food_qty);
+                                    ProductsActivity.food_subtotal.remove(food_subtotal);
                                 }
                                 else{
                                     Toast.makeText(context, "Error: " + task.getException(), Toast.LENGTH_SHORT).show();
@@ -193,7 +230,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
 }
 
 class CartViewHolder extends RecyclerView.ViewHolder {
-    public TextView name, desc, price, seller_name, edit, delete;
+    public TextView name, desc, price, seller_name, edit, delete, qty, subtotal;
     public ImageView image;
     public CartViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -204,5 +241,7 @@ class CartViewHolder extends RecyclerView.ViewHolder {
         seller_name = itemView.findViewById(R.id.seller_name);
         edit = itemView.findViewById(R.id.edit);
         delete = itemView.findViewById(R.id.delete);
+        qty = itemView.findViewById(R.id.qty);
+        subtotal = itemView.findViewById(R.id.subtotal);
     }
 }
